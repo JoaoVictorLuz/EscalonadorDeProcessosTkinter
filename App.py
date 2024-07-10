@@ -70,7 +70,7 @@ class App(Tk):
 
     def output_process(self, process: Processo) -> None:
         self.output = Label(self, text = f"PID:{process.get_pid()}  Tempo de Chegada:{process.get_chegada()}  Tempo de Execução:{process.get_tempo_execucao()}  Deadline:{process.get_deadline()}")
-        self.output.grid(columnspan = 3)
+        self.output.grid(columnspan = 3, padx=3, pady=3)
         self.processos.append(process)
 
     def escalonador(self) -> None:
