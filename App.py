@@ -17,11 +17,10 @@ class App(Tk):
 
 
     def buttons_beginning(self):
-        self.new_process_button = Button(self, text='Criar Processo', font=('Arial 10 bold'), command=self.create_process)
-        self.new_process_button.grid(row=2, column=0, columnspan=5, padx=5, pady=5)
+        self.new_process_window_button = Button(self, text='Criar Processos', font=('Arial 10 bold'), command=self.popup_window)
+        self.new_process_window_button.grid(row=0, column=20, columnspan=5, padx=5, pady=5)
         self.run_button = Button(self, text='RUN', font=('Arial 10 bold'), command=self.escalonador)
-        self.run_button.grid(row=2, column=20, columnspan=5)          
-        
+        self.run_button.grid(row=20, column=2, columnspan=5)
         
     def create_process(self)-> None:
         chegada = int(self.chegada_input.get())
@@ -35,36 +34,22 @@ class App(Tk):
         self.pid_counter += 1
         
     def input_widget(self) -> None:
-        self.chegada_label = Label(self, text='Tempo de Chegada')
-        self.chegada_label.grid(row = 0, column= 0, padx=5, pady=5)
-        self.chegada_input = Entry(self, width = 10)
-        self.chegada_input.grid(row=1, column=0)
-
-        self.tempo_execucao_label = Label(self, text='Tempo de Execução')
-        self.tempo_execucao_label.grid(row=0, column=1, padx=5, pady=5)
-        self.tempo_execucao_input = Entry(self, width = 10)
-        self.tempo_execucao_input.grid(row=1, column=1)
-
-        self.deadline_label = Label(self, text = 'Deadline')
-        self.deadline_label.grid(row=0, column=2, padx=5, pady=5)
-        self.deadline_input = Entry(self, width = 8)
-        self.deadline_input.grid(row=1, column=2, padx=5, pady=5)
 
         self.quantum_label = Label(self, text = 'Quantum')
-        self.quantum_label.grid(row=0, column=3, padx=5, pady=5)
+        self.quantum_label.grid(row=0, column=0, padx=5, pady=5)
         self.quantum_input = Entry(self, width = 8)
-        self.quantum_input.grid(row=1, column=3, padx=5, pady=5)
+        self.quantum_input.grid(row=1, column=0, padx=5, pady=5)
         
         self.sobrecarga_label = Label(self, text = 'Sobrecarga do Sistema')
-        self.sobrecarga_label.grid(row=0, column=4, padx=5, pady=5)
+        self.sobrecarga_label.grid(row=0, column=1, padx=5, pady=5)
         self.sobrecarga_input = Entry(self, width = 10)
-        self.sobrecarga_input.grid(row=1, column=4)
+        self.sobrecarga_input.grid(row=1, column=1)
 
         self.algoritmo_label = Label (self, text = 'Algoritmo de Escalonamento')
-        self.algoritmo_label.grid(row=0, column=20, padx=5, pady=5)
+        self.algoritmo_label.grid(row=0, column=2, padx=5, pady=5)
         itens = ['FIFO', 'SJF', 'ROUND ROBIN', 'EDF']
         self.algoritmo_input = ttk.Combobox (self,values=itens)
-        self.algoritmo_input.grid(row=1, column=20)
+        self.algoritmo_input.grid(row=1, column=2)
 
 
 
@@ -86,3 +71,25 @@ class App(Tk):
                 return roundRobin(self.processos, self.quantum, self.sobrecarga )
             if algoritmo == "EDF":
                 return edf(self.processos, self.quantum, self.sobrecarga)
+    
+    def popup_window(self) -> None:
+        self.window = Toplevel(self)
+        self.window.geometry('400x400')
+
+        self.chegada_label = Label(self.window, text='Tempo de Chegada')
+        self.chegada_label.grid(row = 0, column= 0, padx=5, pady=5)
+        self.chegada_input = Entry(self.window, width = 10)
+        self.chegada_input.grid(row=1, column=0)
+
+        self.tempo_execucao_label = Label(self.window, text='Tempo de Execução')
+        self.tempo_execucao_label.grid(row=0, column=1, padx=5, pady=5)
+        self.tempo_execucao_input = Entry(self.window, width = 10)
+        self.tempo_execucao_input.grid(row=1, column=1)
+
+        self.deadline_label = Label(self.window, text = 'Deadline')
+        self.deadline_label.grid(row=0, column=2, padx=5, pady=5)
+        self.deadline_input = Entry(self.window, width = 8)
+        self.deadline_input.grid(row=1, column=2, padx=5, pady=5)
+
+        self.new_process_button = Button(self.window, text='Criar', font=('Arial 10 bold'), command=self.create_process)
+        self.new_process_button.grid( row=2, column=0, columnspan=5, padx=5, pady=5)
