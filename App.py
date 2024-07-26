@@ -6,7 +6,7 @@ from Processo import *
 class App(Tk):
     def __init__(self) -> None:
         super().__init__()
-        self.geometry('700x450')
+        self.geometry('900x450')
         self.title('Simulador SO')
         self.config(bg="gray")
         self.pid_counter = 0
@@ -17,9 +17,9 @@ class App(Tk):
 
 
     def buttons_beginning(self):
-        self.new_process_window_button = Button(self, text='Criar Processos', font=('Arial 10 bold'), command=self.popup_window)
-        self.new_process_window_button.grid(row=0, column=20, columnspan=5, padx=5, pady=5)
-        self.run_button = Button(self, text='RUN', font=('Arial 10 bold'), command=self.escalonador)
+        self.new_process_window_button = Button(self, text='Criar Processos', font=('Arial 20 bold'), command=self.create_process_window)
+        self.new_process_window_button.grid(row=1, column=20, columnspan=5, padx=5, pady=5)
+        self.run_button = Button(self, text='RUN', font=('Arial 20 bold'), command=self.escalonador)
         self.run_button.grid(row=20, column=2, columnspan=5)
         
     def create_process(self)-> None:
@@ -35,18 +35,18 @@ class App(Tk):
         
     def input_widget(self) -> None:
 
-        self.quantum_label = Label(self, text = 'Quantum')
+        self.quantum_label = Label(self, text = 'Quantum', font=('Arial 15'))
         self.quantum_label.grid(row=0, column=0, padx=5, pady=5)
         self.quantum_input = Entry(self, width = 8)
-        self.quantum_input.grid(row=1, column=0, padx=5, pady=5)
+        self.quantum_input.grid(row=1, column=0, padx=10, pady=10)
         
-        self.sobrecarga_label = Label(self, text = 'Sobrecarga do Sistema')
-        self.sobrecarga_label.grid(row=0, column=1, padx=5, pady=5)
+        self.sobrecarga_label = Label(self, text = 'Sobrecarga do Sistema', font=('Arial 15'))
+        self.sobrecarga_label.grid(row=0, column=1, padx=10, pady=10)
         self.sobrecarga_input = Entry(self, width = 10)
         self.sobrecarga_input.grid(row=1, column=1)
 
-        self.algoritmo_label = Label (self, text = 'Algoritmo de Escalonamento')
-        self.algoritmo_label.grid(row=0, column=2, padx=5, pady=5)
+        self.algoritmo_label = Label (self, text = 'Algoritmo de Escalonamento', font=('Arial 15'))
+        self.algoritmo_label.grid(row=0, column=2, padx=10, pady=10)
         itens = ['FIFO', 'SJF', 'ROUND ROBIN', 'EDF']
         self.algoritmo_input = ttk.Combobox (self,values=itens)
         self.algoritmo_input.grid(row=1, column=2)
@@ -72,7 +72,7 @@ class App(Tk):
             if algoritmo == "EDF":
                 return edf(self.processos, self.quantum, self.sobrecarga)
     
-    def popup_window(self) -> None:
+    def create_process_window(self) -> None:
         self.window = Toplevel(self)
         self.window.geometry('400x400')
 
