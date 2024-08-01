@@ -1,5 +1,6 @@
 from tkinter import *
 from tkinter import ttk
+from tkinter import font
 from algoritmosDeFato import *
 from Processo import *
 
@@ -10,6 +11,7 @@ class App(Tk):
         self.title('Simulador SO')
         self.config(bg="gray")
         self.pid_counter = 0
+        self.widgets = {}
         self.processos = []   
         self.input_widget()             # Faz aparecer caixas de entrada na tela inicial
         self.buttons_beginning()        # Faz aparecer botôes na tela inicial
@@ -54,10 +56,31 @@ class App(Tk):
 
 
     def output_process(self, process: Processo) -> None:
-        self.output = Label(self, text = f"PID:{process.get_pid()}  Tempo de Chegada:{process.get_chegada()}  Tempo de Execução:{process.get_tempo_execucao()}  Deadline:{process.get_deadline()}")
-        self.output.grid(columnspan = 3, padx=3, pady=3)
+        pid=process.pid
+        output = Label(self, text = f"PID:{pid}  Tempo de Chegada:{process.get_chegada()}  Tempo de Execução:{process.get_tempo_execucao()}  Deadline:{process.get_deadline()}")
+        output.grid(columnspan = 3, column=0, padx=3, pady=3)
         self.processos.append(process)
-
+        delete_button = Button (self, text='X', command=lambda: eliminar_processo(process), bg="red", fg="black")   
+        delete_button.grid(column=2, padx=1, pady=1) 
+        self.widgets[pid] = (output, delete_button)
+        def eliminar_processo(process: Processo):
+            pid_to_remove = process.pid
+            output, delete_button = self.widgets[pid_to_remove]
+            output.destroy()
+            delete_button.destroy()
+            self.processos.remove(process)
+            del self.widgets[pid_to_remove]
+            for i in range(pid_to_remove, len(self.processos)):
+                self.processos[i].pid -= 1 
+                new_pid = self.processos[i].pid
+            
+                output, delete_button = self.widgets.pop(new_pid + 1) 
+                output.config(text=f"PID:{new_pid}  Tempo de Chegada:{self.processos[i].get_chegada()}  Tempo de Execução:{self.processos[i].get_tempo_execucao()}  Deadline:{self.processos[i].get_deadline()}")
+                self.widgets[new_pid] = (output, delete_button)  
+        
+        
+            self.pid_counter -= 1
+    
     def escalonador(self) -> None:
         if self.algoritmo_input is not None:
             self.quantum=int(self.quantum_input.get())
