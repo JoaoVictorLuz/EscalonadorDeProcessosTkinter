@@ -161,25 +161,6 @@ def edf(lista_de_processos, quantum_do_sistema, sobrecarga_do_sistema):
         tempo_de_execucao_do_primeiro_processo += 1
 
     print(" ")
-
-
-
-
-
-
-    def fifo_dois(lista_de_processos):
-        lista_de_processos.sort(key = lambda processo: processo.chegada)
-
-        while len(lista_de_processos) > 0:
-            if(lista_de_processos[0].get_tempo_execucao() > 0):
-                atual = lista_de_processos[0].get_tempo_execucao()
-                lista_de_processos[0].set_tempo_execucao(atual-1)
-            else:
-                lista_de_processos.pop()
-        
-            if len(lista_de_processos) == 0: return
-            else:
-                print()
         
 
 if __name__ == "__main__" :

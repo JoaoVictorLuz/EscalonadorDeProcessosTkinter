@@ -19,7 +19,7 @@ class App(Tk):
     def buttons_beginning(self):
         self.new_process_window_button = Button(self, text='Criar Processos', font=('Arial 20 bold'), command=self.create_process_window)
         self.new_process_window_button.grid(row=1, column=20, columnspan=5, padx=5, pady=5)
-        self.run_button = Button(self, text='RUN', font=('Arial 20 bold'), command=self.escalonador)
+        self.run_button = Button(self, text='RUN', font=('Arial 20 bold'), command=lambda: [self.viz_window(), self.escalonador()])
         self.run_button.grid(row=20, column=2, columnspan=5)
         
     def create_process(self)-> None:
@@ -64,7 +64,7 @@ class App(Tk):
             self.sobrecarga=int(self.sobrecarga_input.get())
             algoritmo=self.algoritmo_input.get()
             if algoritmo == "FIFO":
-                return fifo(self.processos)
+                return self.FIFO()
             if algoritmo == "SJF":
                 return sjf(self.processos)
             if algoritmo == "ROUND ROBIN":
@@ -93,3 +93,39 @@ class App(Tk):
 
         self.new_process_button = Button(self.window, text='Criar', font=('Arial 10 bold'), command=self.create_process)
         self.new_process_button.grid( row=2, column=0, columnspan=5, padx=5, pady=5)
+    
+
+    def viz_window(self) -> None: # JANELA PARA VISUALIÇAO DO GRAFICO
+        self.viz_window = Toplevel(self)
+        self.viz_window.geometry('400x400')   
+
+    
+    def FIFO(self) -> None:
+            clock = 0
+            
+            lista_processos = sorted(self.processos, key=lambda processo: processo.get_chegada())
+
+            row_dict = {}
+            
+            for i in range(len(lista_processos)):
+                row_dict[lista_processos[i].get_pid()] = i
+            
+            while len(lista_processos) > 0:
+                
+                if lista_processos[0].get_tempo_execucao() <= 0:
+                    lista_processos.pop(0)
+                    clock  += 1
+                    continue
+
+                cur_pid = lista_processos[0].get_pid() 
+                
+                temp = lista_processos[0].get_tempo_execucao()
+                lista_processos[0].set_tempo_execucao(temp-1)
+                
+                label = Label(self.viz_window, text = '\u25A0')
+                label.grid(row = 1000 + row_dict[cur_pid], column = clock, columnspan=1)
+
+                clock += 1
+
+            return None
+
