@@ -136,14 +136,21 @@ class App(Tk):
                 row_dict[lista_processos[i].pid] = i
             
             while len(lista_processos) > 0:
+                cur_pid = lista_processos[0].pid 
                 
                 if lista_processos[0].get_tempo_execucao() <= 0:
                     lista_processos.pop(0)
                     clock  += 1
                     continue
-
-                cur_pid = lista_processos[0].pid 
+            
+                if lista_processos[0].get_chegada() > clock: 
+                    clock += 1
+                    label = Label(self.viz_window, text = ' ')
+                    label.grid(row = 1000 + row_dict[cur_pid], column = clock, columnspan=1)
+                    continue
                 
+                cur_pid = lista_processos[0].pid 
+
                 temp = lista_processos[0].get_tempo_execucao()
                 lista_processos[0].set_tempo_execucao(temp-1)
                 
