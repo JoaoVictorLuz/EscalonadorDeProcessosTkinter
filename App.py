@@ -21,7 +21,7 @@ class App(Tk):
     def buttons_beginning(self):
         self.new_process_window_button = Button(self, text='Criar Processos', font=('Arial 20 bold'), command=self.create_process_window)
         self.new_process_window_button.grid(row=1, column=20, columnspan=5, padx=5, pady=5)
-        self.run_button = Button(self, text='RUN', font=('Arial 20 bold'), command=lambda: [self.viz_window(), self.escalonador()])
+        self.run_button = Button(self, text='RUN', font=('Arial 20 bold'), command=lambda: self.escalonador())
         self.run_button.grid(row=20, column=2, columnspan=5)
         
     def create_process(self)-> None:
@@ -81,20 +81,22 @@ class App(Tk):
         
             self.pid_counter -= 1
     
-    def escalonador(self) -> None:
-        if self.algoritmo_input is not None:
-            self.quantum=int(self.quantum_input.get())
-            self.sobrecarga=int(self.sobrecarga_input.get())
+    def escalonador(self):
+ 
             algoritmo=self.algoritmo_input.get()
             if algoritmo == "FIFO":
                 return self.FIFO()
             if algoritmo == "SJF":
                 return sjf(self.processos)
             if algoritmo == "ROUND ROBIN":
+                self.quantum=int(self.quantum_input.get())
+                self.sobrecarga=int(self.sobrecarga_input.get())
                 return roundRobin(self.processos, self.quantum, self.sobrecarga )
             if algoritmo == "EDF":
+                self.quantum=int(self.quantum_input.get())
+                self.sobrecarga=int(self.sobrecarga_input.get())
                 return edf(self.processos, self.quantum, self.sobrecarga)
-    
+        
     def create_process_window(self) -> None:
         self.window = Toplevel(self)
         self.window.geometry('400x400')
@@ -116,14 +118,14 @@ class App(Tk):
 
         self.new_process_button = Button(self.window, text='Criar', font=('Arial 10 bold'), command=self.create_process)
         self.new_process_button.grid( row=2, column=0, columnspan=5, padx=5, pady=5)
-    
-
-    def viz_window(self) -> None: # JANELA PARA VISUALIÇAO DO GRAFICO
-        self.viz_window = Toplevel(self)
-        self.viz_window.geometry('400x400')   
+      
 
     
     def FIFO(self) -> None:
+            
+            self.viz_window = Toplevel(self)
+            self.viz_window.geometry('400x400') 
+            
             clock = 0
             
             lista_processos = sorted(self.processos, key=lambda processo: processo.get_chegada())
@@ -131,7 +133,7 @@ class App(Tk):
             row_dict = {}
             
             for i in range(len(lista_processos)):
-                row_dict[lista_processos[i].get_pid()] = i
+                row_dict[lista_processos[i].pid] = i
             
             while len(lista_processos) > 0:
                 
@@ -140,7 +142,7 @@ class App(Tk):
                     clock  += 1
                     continue
 
-                cur_pid = lista_processos[0].get_pid() 
+                cur_pid = lista_processos[0].pid 
                 
                 temp = lista_processos[0].get_tempo_execucao()
                 lista_processos[0].set_tempo_execucao(temp-1)
