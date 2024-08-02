@@ -21,7 +21,7 @@ class App(Tk):
     def buttons_beginning(self):
         self.new_process_window_button = Button(self, text='Criar Processos', font=('Arial 20 bold'), command=self.create_process_window)
         self.new_process_window_button.grid(row=1, column=20, columnspan=5, padx=5, pady=5)
-        self.run_button = Button(self, text='RUN', font=('Arial 20 bold'), command=lambda: self.escalonador())
+        self.run_button = Button(self, text='RUN', font=('Arial 20 bold'), command=lambda: [self.viz_window(), self.escalonador()])
         self.run_button.grid(row=20, column=2, columnspan=5)
         
     def create_process(self)-> None:
@@ -81,22 +81,20 @@ class App(Tk):
         
             self.pid_counter -= 1
     
-    def escalonador(self):
- 
+    def escalonador(self) -> None:
+        if self.algoritmo_input is not None:
+            self.quantum=int(self.quantum_input.get())
+            self.sobrecarga=int(self.sobrecarga_input.get())
             algoritmo=self.algoritmo_input.get()
             if algoritmo == "FIFO":
-                return self.FIFO()
-            if algoritmo == "SJF":
-                return sjf(self.processos)
-            if algoritmo == "ROUND ROBIN":
-                self.quantum=int(self.quantum_input.get())
-                self.sobrecarga=int(self.sobrecarga_input.get())
-                return roundRobin(self.processos, self.quantum, self.sobrecarga )
-            if algoritmo == "EDF":
-                self.quantum=int(self.quantum_input.get())
-                self.sobrecarga=int(self.sobrecarga_input.get())
-                return edf(self.processos, self.quantum, self.sobrecarga)
-        
+              self.FIFO()
+            elif algoritmo == "SJF":
+              self.SJF()
+            elif algoritmo == "ROUND ROBIN":
+              self.roundRobin(self.quantum, self.sobrecarga)
+            elif algoritmo == "EDF":
+              self.EDF()
+    
     def create_process_window(self) -> None:
         self.window = Toplevel(self)
         self.window.geometry('400x400')
@@ -118,14 +116,14 @@ class App(Tk):
 
         self.new_process_button = Button(self.window, text='Criar', font=('Arial 10 bold'), command=self.create_process)
         self.new_process_button.grid( row=2, column=0, columnspan=5, padx=5, pady=5)
-      
+    
+
+    def viz_window(self) -> None: # JANELA PARA VISUALIÇAO DO GRAFICO
+        self.viz_window = Toplevel(self)
+        self.viz_window.geometry('400x400')   
 
     
     def FIFO(self) -> None:
-            
-            self.viz_window = Toplevel(self)
-            self.viz_window.geometry('400x400') 
-            
             clock = 0
             
             lista_processos = sorted(self.processos, key=lambda processo: processo.get_chegada())
@@ -133,7 +131,7 @@ class App(Tk):
             row_dict = {}
             
             for i in range(len(lista_processos)):
-                row_dict[lista_processos[i].pid] = i
+                row_dict[lista_processos[i].get_pid()] = i
             
             while len(lista_processos) > 0:
                 
@@ -142,15 +140,132 @@ class App(Tk):
                     clock  += 1
                     continue
 
-                cur_pid = lista_processos[0].pid 
+                atual_pid = lista_processos[0].get_pid() 
                 
                 temp = lista_processos[0].get_tempo_execucao()
                 lista_processos[0].set_tempo_execucao(temp-1)
                 
                 label = Label(self.viz_window, text = '\u25A0')
-                label.grid(row = 1000 + row_dict[cur_pid], column = clock, columnspan=1)
+                label.grid(row = 1000 + row_dict[atual_pid], column = clock, columnspan=1)
 
                 clock += 1
 
             return None
+        
+    def SJF(self) -> None:
+     clock = 0
+     lista_processos = sorted(self.processos, key=lambda processo: processo.get_chegada())
+    
+     while lista_processos:
+        # Adiciona processos que chegaram até o momento
+        processos_disponiveis = [p for p in lista_processos if p.get_chegada() <= clock]
+        
+        if processos_disponiveis:
+            # Seleciona o processo com menor tempo de execução
+            processo = min(processos_disponiveis, key=lambda p: p.get_tempo_execucao())
+            processo.set_tempo_execucao(processo.get_tempo_execucao() - 1)
+            
+            label = Label(self.viz_window, text=f'\u25A0{processo.get_pid()}')
+            label.grid(row=1000 + lista_processos.index(processo), column = clock, columnspan=1)
+            
+            if processo.get_tempo_execucao() <= 0:
+                lista_processos.remove(processo)
+        else:
+            # Se nenhum processo está disponível, avança o tempo
+            label = Label(self.viz_window, text=' ')
+            Label(self.viz_window, text='').grid(row=row + 1, column=clock, columnspan=1)
 
+        
+        clock += 1
+         
+     return None
+        
+        
+    def roundRobin(self, quantum, sobrecarga) -> None:
+     timer = 0
+     lista_de_processos_disponiveis = []
+     lista_de_processos_ja_executados = []
+     tempo_de_execucao_do_primeiro_processo = 0
+    
+    # Põe o pid na grade
+     row_dict = {processo.get_pid(): i for i, processo in enumerate(self.processos)}
+
+     while len(lista_de_processos_ja_executados) < len(self.processos):
+        processo_em_espera = True  # Suponha que o processo esteja em espera até que seja iniciado
+        
+        # Adiciona processos disponíveis à lista
+        for processo in self.processos:
+            if processo.get_chegada() == timer:
+                if processo not in lista_de_processos_disponiveis and processo not in lista_de_processos_ja_executados:
+                    lista_de_processos_disponiveis.append(processo)
+        
+        # Visualização
+        for processo in self.processos:
+            if processo.get_chegada() <= timer and processo not in lista_de_processos_disponiveis and processo not in lista_de_processos_ja_executados:
+                processo_em_espera = True
+                label = Label(self.viz_window, bg='yellow', width=2, height=2)
+                label.grid(row=1000 + row_dict[processo.get_pid()], column=timer, columnspan=1)
+        
+        for processo in lista_de_processos_disponiveis:
+            if processo.get_tempo_execucao() > 0:
+                label = Label(self.viz_window, bg='green', width=2, height=2)  # Bloco verde para execução
+                label.grid(row=1000 + row_dict[processo.get_pid()], column=timer, columnspan=1)
+
+        if processo_em_espera:
+            label = Label(self.viz_window, bg='yellow', width=2, height=2)
+            label.grid(row=1000 + row_dict[processo.get_pid()], column=timer, columnspan=1)
+
+        # Executa o processo atual
+        if lista_de_processos_disponiveis:
+            processo_atual = lista_de_processos_disponiveis[0]
+            if processo_atual.get_tempo_execucao() > 0:
+                processo_atual.set_tempo_execucao(processo_atual.get_tempo_execucao() - 1)
+                tempo_de_execucao_do_primeiro_processo += 1
+                if tempo_de_execucao_do_primeiro_processo == quantum:
+                    lista_de_processos_disponiveis.append(lista_de_processos_disponiveis.pop(0))  # Rotaciona o processo
+                    tempo_de_execucao_do_primeiro_processo = 0
+                    # Adiciona sobrecarga
+                    label = Label(self.viz_window, bg='red', width=2, height=2)
+                    label.grid(row=1000 + row_dict[processo_atual.get_pid()], column=timer, columnspan=1)
+                    timer += sobrecarga  # Adiciona sobrecarga
+
+            if processo_atual.get_tempo_execucao() <= 0:
+                lista_de_processos_ja_executados.append(lista_de_processos_disponiveis.pop(0))
+
+        timer += 1  # Avança o tempo
+
+    # Ajuste final para a última linha no gráfico
+     for processo in self.processos:
+        if processo.get_tempo_execucao() <= 0:
+            row_dict.pop(processo.get_pid())
+       
+     return None
+
+
+    def EDF(self) -> None:
+     clock = 0
+     lista_processos = sorted(self.processos, key=lambda processo: processo.get_chegada())
+     fila_processos = []
+    
+     while lista_processos or fila_processos:
+        # Adiciona processos que chegaram até o momento
+        while lista_processos and lista_processos[0].get_chegada() <= clock:
+            fila_processos.append(lista_processos.pop(0))
+        
+        if fila_processos:
+            fila_processos.sort(key=lambda p: p.get_deadline())  # Ordena por deadline
+            processo = fila_processos[0]
+            processo.set_tempo_execucao(processo.get_tempo_execucao() - 1)
+            
+            label = Label(self.viz_window, text=f'\u25A0{processo.get_pid()}')
+            label.grid(row=1000 + fila_processos.index(processo), column=clock, columnspan=1)
+            
+            if processo.get_tempo_execucao() <= 0:
+                fila_processos.pop(0)
+
+        else:
+            # Se nenhum processo está disponível, avança o tempo
+            label = Label(self.viz_window, text=' ')
+            label.grid(row=1000, column=clock, columnspan=1)
+        
+        clock += 1
