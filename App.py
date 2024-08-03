@@ -122,8 +122,7 @@ class App(Tk):
         self.viz_window = Toplevel(self)
         self.viz_window.geometry('400x400')   
    
-    def FIFO(self) -> None:
-            
+    def FIFO(self) -> None:   
             self.viz_window = Toplevel(self)
             self.viz_window.geometry('400x400') 
             
@@ -149,7 +148,7 @@ class App(Tk):
                 label.grid(row = 1 + row_dict[i], column = 0, columnspan=1)
             
             # Gráfico de Gantt
-            while len(lista_processos) > 0 or len(lista_chegou) > 0: # TEM Q MUDAR
+            while len(lista_processos) > 0 or len(lista_chegou) > 0:
 
                 # Verifica se algum processo chegou nesse clock (podem ser mais de um) e o(s) coloca em lista_chegou
                 for i in lista_processos:    
@@ -163,7 +162,6 @@ class App(Tk):
     
                     if lista_chegou[0].get_tempo_execucao() <= 0:
                         lista_chegou.pop(0)
-                        clock += 1
                     
                     if len(lista_chegou) ==  0: continue
                     
@@ -178,16 +176,21 @@ class App(Tk):
                     for i in range(len(lista_chegou)):
                         if i == 0: continue
                         cur = lista_chegou[i].pid
-                        label = Label(self.viz_window, text = '\u25A1') # Esperando
+                        label = Label(self.viz_window, text = '\u25A9') # Esperando
                         label.grid(row = 1+ row_dict[cur], column = 1 + clock, columnspan=1)
 
                     clock += 1
+
+                    for i in lista_processos:
+                        label = Label(self.viz_window, text = '\u25A1') # Espaço Vazio
+                        label.grid(row = 1+ row_dict[i.pid], column = 1 + clock, columnspan=1)
                 
                 else:
-                    for i in lista_processos:
-                        label = Label(self.viz_window, text = '  ') # Espaço Vazio (nenhum processo executando nem esperando)
-                        label.grid(row = 1+ row_dict[i.pid], column = 1 + clock, columnspan=1)
                     clock += 1
+                
+                for i in lista_processos:
+                        label = Label(self.viz_window, text = '\u25A1') # Espaço Vazio
+                        label.grid(row = 1+ row_dict[i.pid], column = 1 + clock, columnspan=1)
 
             return None
         
