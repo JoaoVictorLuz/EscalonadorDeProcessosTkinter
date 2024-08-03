@@ -10,8 +10,8 @@ class Processo:
         self.deadline = deadline
 
     
-    def get_pid(self) -> str:
-        return str(self.pid)
+    def get_pid(self) -> int:
+        return (self.pid)
     
     def get_chegada(self) -> int:
         return self.chegada
