@@ -195,32 +195,84 @@ class App(Tk):
             return None
         
     def SJF(self) -> None:
-     clock = 0
-     lista_processos = sorted(self.processos, key=lambda processo: processo.get_chegada())
-    
-     while lista_processos:
-        # Adiciona processos que chegaram até o momento
-        processos_disponiveis = [p for p in lista_processos if p.get_chegada() <= clock]
-        
-        if processos_disponiveis:
-            # Seleciona o processo com menor tempo de execução
-            processo = min(processos_disponiveis, key=lambda p: p.get_tempo_execucao())
-            processo.set_tempo_execucao(processo.get_tempo_execucao() - 1)
+        self.viz_window = Toplevel(self)
+        self.viz_window.geometry('400x400') 
             
-            label = Label(self.viz_window, text=f'\u25A0{processo.get_pid()}')
-            label.grid(row=1000 + lista_processos.index(processo), column = clock, columnspan=1)
+        clock = 0
             
-            if processo.get_tempo_execucao() <= 0:
-                lista_processos.remove(processo)
-        else:
-            # Se nenhum processo está disponível, avança o tempo
-            label = Label(self.viz_window, text=' ')
-            Label(self.viz_window, text='').grid(row=row + 1, column=clock, columnspan=1)
+        lista_processos = sorted(self.processos, key=lambda processo: processo.get_chegada()) # Lista com todos os processos em ordem de chegada
+        lista_chegou = [] # Lista que guarda os processos à medida em que eles chegam na CPU
 
-        
-        clock += 1
-         
-     return None
+            
+        # Associa cada Processo a uma linha na janela de visualização
+        row_dict = {}
+            
+
+        for i in range(len(lista_processos)):
+            row_dict[lista_processos[i].pid] = i
+
+        # Imprime coluna com PID dos Processos:
+        self.titulo = Label(self.viz_window, text = 'PIDs')
+        self.titulo.grid(row = 0, column = 0, columnspan=1)
+
+        for i in row_dict:
+            label = Label(self.viz_window, text = f'{i}:')
+            label.grid(row = 1 + row_dict[i], column = 0, columnspan=1) 
+
+
+
+        # Grafico de Gantt   
+    
+        while len(lista_processos) > 0 or len(lista_chegou) > 0:
+            
+            # Verifica se algum processo chegou nesse clock (podem ser mais de um) e o(s) coloca em lista_chegou
+            for i in lista_processos:    
+                if i.get_chegada() == clock:
+                    lista_chegou.append(i)
+                    lista_processos.pop(0)
+                else:
+                    break
+            
+            lista_chegou[1:] =  sorted(lista_chegou[1:], key=lambda processo: processo.get_tempo_execucao()) # Ordena  elementos por tempo de execução (menos oq já está executando)
+
+            if len(lista_chegou) > 0:
+    
+                    if lista_chegou[0].get_tempo_execucao() <= 0:
+                        lista_chegou.pop(0)
+                    
+                    if len(lista_chegou) ==  0: continue
+                    
+                    cur_processo = lista_chegou[0].pid 
+
+                    temp = lista_chegou[0].get_tempo_execucao()
+                    lista_chegou[0].set_tempo_execucao(temp-1)
+                    
+                    label = Label(self.viz_window, text = '\u25A0') # Executando
+                    label.grid(row = 1+ row_dict[cur_processo], column = 1 + clock, columnspan=1)
+
+                    for i in range(len(lista_chegou)):
+                        if i == 0: continue
+                        cur = lista_chegou[i].pid
+                        label = Label(self.viz_window, text = '\u25A9') # Esperando
+                        label.grid(row = 1+ row_dict[cur], column = 1 + clock, columnspan=1)
+
+                    clock += 1
+
+                    for i in lista_processos:
+                        label = Label(self.viz_window, text = '\u25A1') # Espaço Vazio
+                        label.grid(row = 1+ row_dict[i.pid], column = 1 + clock, columnspan=1)
+                
+            else:
+                clock += 1
+                
+            for i in lista_processos:
+                    label = Label(self.viz_window, text = '\u25A1') # Espaço Vazio
+                    label.grid(row = 1+ row_dict[i.pid], column = 1 + clock, columnspan=1)
+
+            
+            
+            
+        return None
         
         
     def roundRobin(self, quantum, sobrecarga) -> None:
