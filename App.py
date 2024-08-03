@@ -121,8 +121,7 @@ class App(Tk):
     def viz_window(self) -> None: # JANELA PARA VISUALIÇAO DO GRAFICO
         self.viz_window = Toplevel(self)
         self.viz_window.geometry('400x400')   
-
-    
+   
     def FIFO(self) -> None:
             
             self.viz_window = Toplevel(self)
@@ -130,36 +129,65 @@ class App(Tk):
             
             clock = 0
             
-            lista_processos = sorted(self.processos, key=lambda processo: processo.get_chegada())
+            lista_processos = sorted(self.processos, key=lambda processo: processo.get_chegada()) # Lista com todos os processos em ordem de chegada
+            lista_chegou = [] # Lista que guarda os processos à medida em que eles chegam na CPU
 
+            
+            # Associa cada Processo a uma linha na janela de visualização
             row_dict = {}
             
+
             for i in range(len(lista_processos)):
                 row_dict[lista_processos[i].pid] = i
+
+            # Imprime coluna com PID dos Processos:
+            self.titulo = Label(self.viz_window, text = 'PIDs')
+            self.titulo.grid(row = 0, column = 0, columnspan=1)
+
+            for i in row_dict:
+                label = Label(self.viz_window, text = f'{i}:')
+                label.grid(row = 1 + row_dict[i], column = 0, columnspan=1)
             
-            while len(lista_processos) > 0:
-                cur_pid = lista_processos[0].pid 
+            # Gráfico de Gantt
+            while len(lista_processos) > 0 or len(lista_chegou) > 0: # TEM Q MUDAR
+
+                # Verifica se algum processo chegou nesse clock (podem ser mais de um) e o(s) coloca em lista_chegou
+                for i in lista_processos:    
+                    if i.get_chegada() == clock:
+                        lista_chegou.append(i)
+                        lista_processos.pop(0)
+                    else:
+                        break
                 
-                if lista_processos[0].get_tempo_execucao() <= 0:
-                    lista_processos.pop(0)
-                    clock  += 1
-                    continue
-            
-                if lista_processos[0].get_chegada() > clock: 
+                if len(lista_chegou) > 0:
+    
+                    if lista_chegou[0].get_tempo_execucao() <= 0:
+                        lista_chegou.pop(0)
+                        clock += 1
+                    
+                    if len(lista_chegou) ==  0: continue
+                    
+                    cur_processo = lista_chegou[0].pid 
+
+                    temp = lista_chegou[0].get_tempo_execucao()
+                    lista_chegou[0].set_tempo_execucao(temp-1)
+                    
+                    label = Label(self.viz_window, text = '\u25A0') # Executando
+                    label.grid(row = 1+ row_dict[cur_processo], column = 1 + clock, columnspan=1)
+
+                    for i in range(len(lista_chegou)):
+                        if i == 0: continue
+                        cur = lista_chegou[i].pid
+                        label = Label(self.viz_window, text = '\u25A1') # Esperando
+                        label.grid(row = 1+ row_dict[cur], column = 1 + clock, columnspan=1)
+
                     clock += 1
-                    label = Label(self.viz_window, text = '\u25A1')
-                    label.grid(row = 1000 + row_dict[cur_pid], column = clock, columnspan=1)
-                    continue
                 
-                cur_pid = lista_processos[0].pid 
-
-                temp = lista_processos[0].get_tempo_execucao()
-                lista_processos[0].set_tempo_execucao(temp-1)
-                
-                label = Label(self.viz_window, text = '\u25A0')
-                label.grid(row = 1000 + row_dict[cur_pid], column = clock, columnspan=1)
-
-                clock += 1
+                else:
+                    for i in lista_processos:
+                        label = Label(self.viz_window, text = '  ') # Espaço Vazio (nenhum processo executando nem esperando)
+                        label.grid(row = 1+ row_dict[i.pid], column = 1 + clock, columnspan=1)
+                    clock += 1
 
             return None
         
