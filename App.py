@@ -124,6 +124,10 @@ class App(Tk):
 
     
     def FIFO(self) -> None:
+            
+            self.viz_window = Toplevel(self)
+            self.viz_window.geometry('400x400') 
+            
             clock = 0
             
             lista_processos = sorted(self.processos, key=lambda processo: processo.get_chegada())
@@ -131,22 +135,29 @@ class App(Tk):
             row_dict = {}
             
             for i in range(len(lista_processos)):
-                row_dict[lista_processos[i].get_pid()] = i
+                row_dict[lista_processos[i].pid] = i
             
             while len(lista_processos) > 0:
+                cur_pid = lista_processos[0].pid 
                 
                 if lista_processos[0].get_tempo_execucao() <= 0:
                     lista_processos.pop(0)
                     clock  += 1
                     continue
-
-                atual_pid = lista_processos[0].get_pid() 
+            
+                if lista_processos[0].get_chegada() > clock: 
+                    clock += 1
+                    label = Label(self.viz_window, text = '\u25A1')
+                    label.grid(row = 1000 + row_dict[cur_pid], column = clock, columnspan=1)
+                    continue
                 
+                cur_pid = lista_processos[0].pid 
+
                 temp = lista_processos[0].get_tempo_execucao()
                 lista_processos[0].set_tempo_execucao(temp-1)
                 
                 label = Label(self.viz_window, text = '\u25A0')
-                label.grid(row = 1000 + row_dict[atual_pid], column = clock, columnspan=1)
+                label.grid(row = 1000 + row_dict[cur_pid], column = clock, columnspan=1)
 
                 clock += 1
 
