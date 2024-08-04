@@ -6,3 +6,5 @@ from App import *
 
 teste = App()
 teste.mainloop()
+
+"só to testando meu clone"
