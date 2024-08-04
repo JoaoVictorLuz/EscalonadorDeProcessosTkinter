@@ -124,7 +124,7 @@ class App(Tk):
    
     def FIFO(self) -> None:
      self.viz_window = Toplevel(self)
-     self.viz_window.geometry('800x250')
+     self.viz_window.geometry('900x250')
     
      clock = 0
      lista_processos = sorted(self.processos_copy, key=lambda processo: processo.get_chegada())
@@ -193,7 +193,7 @@ class App(Tk):
 
     def SJF(self) -> None:
      self.viz_window = Toplevel(self)
-     self.viz_window.geometry('800x250')
+     self.viz_window.geometry('900x250')
 
      clock = 0
 
@@ -267,7 +267,7 @@ class App(Tk):
 
     def roundRobin(self, quantum, sobrecarga) -> None:
      self.viz_window = Toplevel(self)
-     self.viz_window.geometry('800x250')
+     self.viz_window.geometry('900x250')
     
      clock = 0
      lista_processos = sorted(self.processos_copy, key=lambda processo: processo.get_chegada())  # Ordena por tempo de chegada
@@ -331,9 +331,9 @@ class App(Tk):
                         cur = p.get_pid()
                         label = Label(self.viz_window, text='\u26DE')  # Bola cortada (sobrecarga)
                         label.grid(row=1 + row_dict[cur], column=1 + clock, columnspan=1)
+                        total_sobrecarga += 1
                     
                     # Atualiza o contador de sobrecarga
-                    total_sobrecarga += 1
 
                     clock += 1
 
@@ -346,6 +346,11 @@ class App(Tk):
     # Calcula o tempo médio de espera
      num_processos = len(self.processos_copy)
      tempo_medio_espera = (total_espera + total_execucao + total_sobrecarga) / num_processos
+     print(total_espera)
+     print(total_execucao)
+     print(total_sobrecarga)
+     print(tempo_medio_espera)
+     print(num_processos)
      self.tempo_medio_espera_label = Label(self.viz_window, text=f'Tempo Médio de Espera: {tempo_medio_espera:.2f}')
      self.tempo_medio_espera_label.grid(row=1, column=1 + clock, columnspan=1)
 
@@ -353,7 +358,7 @@ class App(Tk):
 
     def EDF(self, quantum, sobrecarga) -> None:
      self.viz_window = Toplevel(self)
-     self.viz_window.geometry('800x250')
+     self.viz_window.geometry('900x250')
     
      clock = 0
      lista_processos = sorted(self.processos_copy, key=lambda processo: processo.get_chegada())
@@ -427,8 +432,9 @@ class App(Tk):
                         symbol = '\u26DE'  # Bola cortada (sobrecarga)
                         label = Label(self.viz_window, text=symbol)
                         label.grid(row=1 + row_dict[cur], column=1 + clock, columnspan=1)
+                        total_sobrecarga += 1
                     clock += 1
-                    total_sobrecarga += 1
+                    
         
         else:
             # Se nenhum processo está disponível, avança o tempo
@@ -439,6 +445,11 @@ class App(Tk):
     # Calcula o tempo médio de espera
      num_processos = len(self.processos_copy)
      tempo_medio_espera = (total_espera + total_execucao + total_sobrecarga) / num_processos
+     print(total_espera)
+     print(total_execucao)
+     print(total_sobrecarga)
+     print(tempo_medio_espera)
+     print(num_processos)
     
     # Exibe o tempo médio de espera na janela de visualização
      self.tempo_medio_espera_label = Label(self.viz_window, text=f"Tempo Médio de Espera: {tempo_medio_espera:.2f}")
