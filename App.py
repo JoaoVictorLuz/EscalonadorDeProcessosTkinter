@@ -197,7 +197,8 @@ class App(Tk):
 
      clock = 0
 
-     lista_processos = sorted(self.processos_copy, key=lambda processo: processo.get_chegada())  # Ordena por tempo de chegada
+    # Ordena primeiro por tempo de chegada e depois por tempo de execução (em caso de empate)
+     lista_processos = sorted(self.processos_copy, key=lambda processo: (processo.get_chegada(), processo.get_tempo_execucao()))  
      lista_chegou = []  # Lista que guarda os processos à medida que eles chegam na CPU
      lista_exec = [processo.exec for processo in self.processos_copy]  # Lista dos tempos de execução restantes
 
@@ -222,8 +223,7 @@ class App(Tk):
         while lista_processos and lista_processos[0].get_chegada() <= clock:
             lista_chegou.append(lista_processos.pop(0))
 
-        lista_chegou.sort(key=lambda processo: processo.get_tempo_execucao())  # Ordena por tempo de execução
-
+        # Não reordena a lista_chegou enquanto um processo está em execução
         if lista_chegou:
             cur_processo = lista_chegou[0].get_pid()
             if clock >= max_columns:
@@ -233,22 +233,26 @@ class App(Tk):
                 lista_chegou.pop(0)
                 continue
 
-            lista_exec[cur_processo] -= 1
+            # Continua a execução do processo atual até ele terminar
+            while lista_exec[cur_processo] > 0:
+                lista_exec[cur_processo] -= 1
 
-            # Adiciona símbolo de execução
-            label = Label(self.viz_window, text='\u25A0')  # Executando
-            label.grid(row=1 + row_dict[cur_processo], column=1 + clock, columnspan=1)
-            tempo_execucao += 1
+                # Adiciona símbolo de execução
+                label = Label(self.viz_window, text='\u25A0')  # Executando
+                label.grid(row=1 + row_dict[cur_processo], column=1 + clock, columnspan=1)
+                tempo_execucao += 1
 
-            # Adiciona símbolo de espera para outros processos
-            for i in lista_chegou:
-                if i.get_pid() != cur_processo:
-                    cur = i.get_pid()
-                    label = Label(self.viz_window, text='\u25A9')  # Esperando
-                    label.grid(row=1 + row_dict[cur], column=1 + clock, columnspan=1)
-                    tempo_espera += 1
+                # Adiciona símbolo de espera para outros processos
+                for i in lista_chegou:
+                    if i.get_pid() != cur_processo:
+                        cur = i.get_pid()
+                        label = Label(self.viz_window, text='\u25A9')  # Esperando
+                        label.grid(row=1 + row_dict[cur], column=1 + clock, columnspan=1)
+                        tempo_espera += 1
 
-            clock += 1
+                clock += 1
+
+            lista_chegou.pop(0)  # Remove o processo atual da fila após a execução completa
         else:
             if clock >= max_columns:
                 break  # Evita acessar colunas fora dos limites
@@ -265,15 +269,17 @@ class App(Tk):
 
      return None
 
+
+
     def roundRobin(self, quantum, sobrecarga) -> None:
      self.viz_window = Toplevel(self)
      self.viz_window.geometry('900x250')
-    
+
      clock = 0
      lista_processos = sorted(self.processos_copy, key=lambda processo: processo.get_chegada())  # Ordena por tempo de chegada
      fila_processos = []
      lista_exec = [processo.exec for processo in self.processos_copy]  # Lista dos tempos de execução restantes
-    
+
     # Associa cada Processo a uma linha na janela de visualização
      row_dict = {processo.get_pid(): i for i, processo in enumerate(self.processos_copy)}
 
@@ -304,7 +310,7 @@ class App(Tk):
             for _ in range(exec_time):
                 label = Label(self.viz_window, text='\u25A0')  # Executando
                 label.grid(row=1 + row_dict[pid], column=1 + clock, columnspan=1)
-                
+
                 # Atualiza o contador de execução
                 total_execucao += 1
 
@@ -320,20 +326,18 @@ class App(Tk):
                 clock += 1
 
             lista_exec[pid] -= exec_time  # Subtrai o tempo executado
-            
+
             if lista_exec[pid] > 0:
                 fila_processos.append(processo_atual)  # Reinsere no final da fila se ainda não terminou
-            
+
             # Adiciona sobrecarga
-            if lista_exec[pid] > 0:
+            if lista_exec[pid] > 0 and len(fila_processos) > 0:
                 for _ in range(sobrecarga):
                     for p in fila_processos:
                         cur = p.get_pid()
                         label = Label(self.viz_window, text='\u26DE')  # Bola cortada (sobrecarga)
                         label.grid(row=1 + row_dict[cur], column=1 + clock, columnspan=1)
                         total_sobrecarga += 1
-                    
-                    # Atualiza o contador de sobrecarga
 
                     clock += 1
 
@@ -346,20 +350,16 @@ class App(Tk):
     # Calcula o tempo médio de espera
      num_processos = len(self.processos_copy)
      tempo_medio_espera = (total_espera + total_execucao + total_sobrecarga) / num_processos
-     print(total_espera)
-     print(total_execucao)
-     print(total_sobrecarga)
-     print(tempo_medio_espera)
-     print(num_processos)
      self.tempo_medio_espera_label = Label(self.viz_window, text=f'Tempo Médio de Espera: {tempo_medio_espera:.2f}')
      self.tempo_medio_espera_label.grid(row=1, column=1 + clock, columnspan=1)
 
      return None
 
+
     def EDF(self, quantum, sobrecarga) -> None:
      self.viz_window = Toplevel(self)
      self.viz_window.geometry('900x250')
-    
+
      clock = 0
      lista_processos = sorted(self.processos_copy, key=lambda processo: processo.get_chegada())
      fila_processos = []
@@ -397,25 +397,24 @@ class App(Tk):
             for _ in range(exec_time):
                 if clock > deadlines[pid]:
                     symbol = '\u25A3'  # Processo ultrapassou a deadline
-                    total_execucao += 1
                 else:
                     symbol = '\u25A0'  # Executando
-                    total_execucao += 1
                 
                 label = Label(self.viz_window, text=symbol)
                 label.grid(row=1 + row_dict[pid], column=1 + clock, columnspan=1)
+
+                total_execucao += 1
 
                 # Processos em espera
                 for p in fila_processos:
                     cur = p.get_pid()
                     if clock > deadlines[cur]:
                         symbol = '\u25A3'  # Processo ultrapassou a deadline
-                        total_espera += 1
                     else:
                         symbol = '\u25A9'  # Esperando
-                        total_espera += 1
                     label = Label(self.viz_window, text=symbol)
                     label.grid(row=1 + row_dict[cur], column=1 + clock, columnspan=1)
+                    total_espera += 1
 
                 clock += 1
 
@@ -423,9 +422,9 @@ class App(Tk):
 
             if lista_exec[pid] > 0:
                 fila_processos.append(processo_atual)  # Reinsere no final da fila se ainda não terminou
-            
+
             # Adiciona sobrecarga
-            if lista_exec[pid] > 0:  # Não adicionar sobrecarga se o processo terminou
+            if lista_exec[pid] > 0 and len(fila_processos) > 0:
                 for _ in range(sobrecarga):
                     for p in fila_processos:
                         cur = p.get_pid()
@@ -434,8 +433,7 @@ class App(Tk):
                         label.grid(row=1 + row_dict[cur], column=1 + clock, columnspan=1)
                         total_sobrecarga += 1
                     clock += 1
-                    
-        
+
         else:
             # Se nenhum processo está disponível, avança o tempo
             label = Label(self.viz_window, text='\u25A1')  # Espaço Vazio
@@ -445,17 +443,11 @@ class App(Tk):
     # Calcula o tempo médio de espera
      num_processos = len(self.processos_copy)
      tempo_medio_espera = (total_espera + total_execucao + total_sobrecarga) / num_processos
-     print(total_espera)
-     print(total_execucao)
-     print(total_sobrecarga)
-     print(tempo_medio_espera)
-     print(num_processos)
-    
-    # Exibe o tempo médio de espera na janela de visualização
      self.tempo_medio_espera_label = Label(self.viz_window, text=f"Tempo Médio de Espera: {tempo_medio_espera:.2f}")
      self.tempo_medio_espera_label.grid(row=1, column=1 + clock, columnspan=1)
-    
+ 
      return None
+
 
 
 " cabecinha <3 "
