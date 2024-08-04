@@ -241,6 +241,12 @@ class App(Tk):
 
             # Continua a execução do processo atual até ele terminar
             while lista_exec[cur_processo] > 0:
+                for i in lista_processos:    
+                    if i.get_chegada() == clock:
+                        lista_chegou.append(i)
+                        lista_processos.pop(0)
+                    else:
+                        break
                 lista_exec[cur_processo] -= 1
 
                 # Adiciona símbolo de execução
@@ -263,8 +269,8 @@ class App(Tk):
             if clock >= max_columns:
                 break  # Evita acessar colunas fora dos limites
             
-            label = Label(self.viz_window, text='\u25A1')  # Espaço Vazio
-            label.grid(row=1, column=1 + clock, columnspan=1)
+            '''label = Label(self.viz_window, text='\u25A1')  # Espaço Vazio
+            label.grid(row=1, column=1 + clock, columnspan=1)'''
             clock += 1
 
     # Calcula e exibe o tempo médio de espera
@@ -314,6 +320,13 @@ class App(Tk):
 
             # Executa o processo
             for _ in range(exec_time):
+                for i in lista_processos:    
+                    if i.get_chegada() == clock:
+                        fila_processos.append(i)
+                        lista_processos.pop(0)
+                    else:
+                        break
+                
                 label = Label(self.viz_window, text='\u25A0')  # Executando
                 label.grid(row=1 + row_dict[pid], column=1 + clock, columnspan=1)
 
