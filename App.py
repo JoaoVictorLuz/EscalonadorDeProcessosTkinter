@@ -82,20 +82,21 @@ class App(Tk):
             self.pid_counter -= 1
     
     def escalonador(self) -> None:
-        if self.algoritmo_input is not None:
-            algoritmo=self.algoritmo_input.get()
-            if algoritmo == "FIFO":
-              self.FIFO()
-            elif algoritmo == "SJF":
-              self.SJF()
-            elif algoritmo == "ROUND ROBIN":
-              quantum=int(self.quantum_input.get())
-              sobrecarga=int(self.sobrecarga_input.get())
-              self.roundRobin(quantum, sobrecarga)
-            elif algoritmo == "EDF":
-              quantum=int(self.quantum_input.get())
-              sobrecarga=int(self.sobrecarga_input.get())
-              self.EDF(quantum, sobrecarga)
+     if self.algoritmo_input is not None:
+        algoritmo = self.algoritmo_input.get()
+        if algoritmo == "FIFO":
+            self.FIFO()
+        elif algoritmo == "SJF":
+            self.SJF()
+        elif algoritmo == "ROUND ROBIN":
+            quantum = int(self.quantum_input.get())
+            sobrecarga = int(self.sobrecarga_input.get())
+            self.roundRobin(quantum, sobrecarga)
+        elif algoritmo == "EDF":
+            quantum = int(self.quantum_input.get())
+            sobrecarga = int(self.sobrecarga_input.get())
+            self.EDF(quantum, sobrecarga)
+
     
     def create_process_window(self) -> None:
         self.window = Toplevel(self)
@@ -121,226 +122,191 @@ class App(Tk):
     
   
    
-    def FIFO(self) -> None:   
-            self.viz_window = Toplevel(self)
-            self.viz_window.geometry('400x400') 
+    def FIFO(self) -> None:
+     self.viz_window = Toplevel(self)
+     self.viz_window.geometry('800x250')
+
+     clock = 0
+     lista_processos = sorted(self.processos, key=lambda processo: processo.get_chegada())  # Ordena por tempo de chegada
+     fila_processos = []  # Lista que guarda os processos que estão na fila para execução
+     lista_exec = [processo.exec for processo in self.processos]  # Lista dos tempos de execução restantes
+
+    # Associa cada Processo a uma linha na janela de visualização
+     row_dict = {processo.get_pid(): i for i, processo in enumerate(self.processos)}
+
+    # Imprime coluna com PID dos Processos
+     self.titulo = Label(self.viz_window, text='PIDs')
+     self.titulo.grid(row=0, column=0, columnspan=1)
+
+     for i in row_dict:
+        label = Label(self.viz_window, text=f'{i}:')
+        label.grid(row=1 + row_dict[i], column=0, columnspan=1)
+
+     max_columns = 100  # Define um valor máximo para as colunas
+     while len(lista_processos) > 0 or len(fila_processos) > 0:
+        # Adiciona processos que chegaram até o momento
+        while lista_processos and lista_processos[0].get_chegada() <= clock:
+            fila_processos.append(lista_processos.pop(0))
+
+        if fila_processos:
+            cur_processo = fila_processos[0]
+            pid = cur_processo.get_pid()
+            if clock >= max_columns:
+                break  # Evita acessar colunas fora dos limites
             
-            clock = 0
+            exec_time = min(cur_processo.get_tempo_execucao(), 1)  # Executa por 1 unidade de tempo
+            cur_processo.set_tempo_execucao(cur_processo.get_tempo_execucao() - exec_time)
+
+            label = Label(self.viz_window, text='\u25A0')  # Executando
+            label.grid(row=1 + row_dict[pid], column=1 + clock, columnspan=1)
+
+            for p in fila_processos[1:]:
+                cur = p.get_pid()
+                label = Label(self.viz_window, text='\u25A9')  # Esperando
+                label.grid(row=1 + row_dict[cur], column=1 + clock, columnspan=1)
+
+            clock += 1
             
-            lista_processos = sorted(self.processos, key=lambda processo: processo.get_chegada()) # Lista com todos os processos em ordem de chegada
-            lista_chegou = [] # Lista que guarda os processos à medida em que eles chegam na CPU
-            lista_exec = []
-            for i in range(len(self.processos)):
-                lista_exec.append(self.processos[i].exec)
+            if cur_processo.get_tempo_execucao() <= 0:
+                fila_processos.pop(0)  # Remove o processo da fila se terminado
 
+        else:
+            if clock >= max_columns:
+                break  # Evita acessar colunas fora dos limites
             
-            # Associa cada Processo a uma linha na janela de visualização
-            row_dict = {}
-            
+            label = Label(self.viz_window, text='\u25A1')  # Espaço Vazio
+            label.grid(row=1, column=1 + clock, columnspan=1)
+            clock += 1
 
-            for i in range(len(lista_processos)):
-                row_dict[lista_processos[i].pid] = i
-
-            # Imprime coluna com PID dos Processos:
-            self.titulo = Label(self.viz_window, text = 'PIDs')
-            self.titulo.grid(row = 0, column = 0, columnspan=1)
-
-            for i in row_dict:
-                label = Label(self.viz_window, text = f'{i}:')
-                label.grid(row = 1 + row_dict[i], column = 0, columnspan=1)
-            
-            # Gráfico de Gantt
-            while len(lista_processos) > 0 or len(lista_chegou) > 0:
-
-                # Verifica se algum processo chegou nesse clock (podem ser mais de um) e o(s) coloca em lista_chegou
-                for i in lista_processos:    
-                    if i.get_chegada() == clock:
-                        lista_chegou.append(i)
-                        lista_processos.pop(0)
-                    else:
-                        break
-                
-                if len(lista_chegou) > 0:
-                    cur_processo = lista_chegou[0].pid
-                    
-                    if lista_exec[cur_processo] <= 0:
-                        lista_chegou.pop(0)
-                        continue
-                    
-                    if len(lista_chegou) ==  0: continue 
-
-                    lista_exec[cur_processo]=lista_exec[cur_processo]-1
-                    
-                    label = Label(self.viz_window, text = '\u25A0') # Executando
-                    label.grid(row = 1+ row_dict[cur_processo], column = 1 + clock, columnspan=1)
-
-                    for i in range(len(lista_chegou)):
-                        if i == 0: continue
-                        cur = lista_chegou[i].pid
-                        label = Label(self.viz_window, text = '\u25A9') # Esperando
-                        label.grid(row = 1+ row_dict[cur], column = 1 + clock, columnspan=1)
-
-                    clock += 1
-
-                    for i in lista_processos:
-                        label = Label(self.viz_window, text = '\u25A1') # Espaço Vazio
-                        label.grid(row = 1+ row_dict[i.pid], column = 1 + clock, columnspan=1)
-                
-                else:
-                    clock += 1
-                
-                for i in lista_processos:
-                        label = Label(self.viz_window, text = '\u25A1') # Espaço Vazio
-                        label.grid(row = 1+ row_dict[i.pid], column = 1 + clock, columnspan=1)
-
-            return None
+     return None
         
     def SJF(self) -> None:
-        self.viz_window = Toplevel(self)
-        self.viz_window.geometry('400x400') 
+     self.viz_window = Toplevel(self)
+     self.viz_window.geometry('800x250')
+
+     clock = 0
+     lista_processos = sorted(self.processos, key=lambda processo: processo.get_chegada())  # Ordena por tempo de chegada
+     lista_chegou = []  # Lista que guarda os processos à medida que eles chegam na CPU
+     lista_exec = [processo.exec for processo in self.processos]  # Lista dos tempos de execução restantes
+
+    # Associa cada Processo a uma linha na janela de visualização
+     row_dict = {processo.get_pid(): i for i, processo in enumerate(self.processos)}
+
+    # Imprime coluna com PID dos Processos
+     self.titulo = Label(self.viz_window, text='PIDs')
+     self.titulo.grid(row=0, column=0, columnspan=1)
+
+     for i in row_dict:
+        label = Label(self.viz_window, text=f'{i}:')
+        label.grid(row=1 + row_dict[i], column=0, columnspan=1)
+
+     max_columns = 100  # Define um valor máximo para as colunas
+     while len(lista_processos) > 0 or len(lista_chegou) > 0:
+        # Adiciona processos que chegaram até o momento
+        while lista_processos and lista_processos[0].get_chegada() <= clock:
+            lista_chegou.append(lista_processos.pop(0))
+
+        lista_chegou[1:] = sorted(lista_chegou[1:], key=lambda processo: processo.get_tempo_execucao())  # Ordena por tempo de execução
+
+        if lista_chegou:
+            cur_processo = lista_chegou[0].pid
+            if clock >= max_columns:
+                break  # Evita acessar colunas fora dos limites
             
-        clock = 0
+            if lista_exec[cur_processo] <= 0:
+                lista_chegou.pop(0)
+                continue
+
+            lista_exec[cur_processo] -= 1
+
+            label = Label(self.viz_window, text='\u25A0')  # Executando
+            label.grid(row=1 + row_dict[cur_processo], column=1 + clock, columnspan=1)
+
+            for i in lista_chegou:
+                if i.get_pid() != cur_processo:
+                    cur = i.get_pid()
+                    label = Label(self.viz_window, text='\u25A9')  # Esperando
+                    label.grid(row=1 + row_dict[cur], column=1 + clock, columnspan=1)
+
+            clock += 1
+        else:
+            if clock >= max_columns:
+                break  # Evita acessar colunas fora dos limites
             
-        lista_processos = sorted(self.processos, key=lambda processo: processo.get_chegada()) # Lista com todos os processos em ordem de chegada
-        lista_chegou = [] # Lista que guarda os processos à medida em que eles chegam na CPU
-        lista_exec = []
-        for i in range(len(self.processos)):
-            lista_exec.append(self.processos[i].exec) 
-        # Associa cada Processo a uma linha na janela de visualização
-        row_dict = {}
-            
+            label = Label(self.viz_window, text='\u25A1')  # Espaço Vazio
+            label.grid(row=1, column=1 + clock, columnspan=1)
+            clock += 1
 
-        for i in range(len(lista_processos)):
-            row_dict[lista_processos[i].pid] = i
+     return None
 
-        # Imprime coluna com PID dos Processos:
-        self.titulo = Label(self.viz_window, text = 'PIDs')
-        self.titulo.grid(row = 0, column = 0, columnspan=1)
-
-        for i in row_dict:
-            label = Label(self.viz_window, text = f'{i}:')
-            label.grid(row = 1 + row_dict[i], column = 0, columnspan=1) 
-
-
-
-        # Grafico de Gantt   
-    
-        while len(lista_processos) > 0 or len(lista_chegou) > 0:
-            
-            # Verifica se algum processo chegou nesse clock (podem ser mais de um) e o(s) coloca em lista_chegou
-            for i in lista_processos:    
-                if i.get_chegada() == clock:
-                    lista_chegou.append(i)
-                    lista_processos.pop(0)
-                else:
-                    break
-            
-            lista_chegou[1:] =  sorted(lista_chegou[1:], key=lambda processo: processo.get_tempo_execucao()) # Ordena  elementos por tempo de execução (menos oq já está executando)
-
-            if len(lista_chegou) > 0:
-                    cur_processo = lista_chegou[0].pid 
-
-                    if lista_exec[cur_processo] <= 0:
-                        lista_chegou.pop(0)
-                        continue
-                    
-                    if len(lista_chegou) ==  0: continue
-                    
-                    lista_exec[cur_processo]=lista_exec[cur_processo]-1
-                    
-                    label = Label(self.viz_window, text = '\u25A0') # Executando
-                    label.grid(row = 1+ row_dict[cur_processo], column = 1 + clock, columnspan=1)
-
-                    for i in range(len(lista_chegou)):
-                        if i == 0: continue
-                        cur = lista_chegou[i].pid
-                        label = Label(self.viz_window, text = '\u25A9') # Esperando
-                        label.grid(row = 1+ row_dict[cur], column = 1 + clock, columnspan=1)
-
-                    clock += 1
-
-                    for i in lista_processos:
-                        label = Label(self.viz_window, text = '\u25A1') # Espaço Vazio
-                        label.grid(row = 1+ row_dict[i.pid], column = 1 + clock, columnspan=1)
-                
-            else:
-                clock += 1
-                
-            for i in lista_processos:
-                    label = Label(self.viz_window, text = '\u25A1') # Espaço Vazio
-                    label.grid(row = 1+ row_dict[i.pid], column = 1 + clock, columnspan=1)
-
-            
-            
-            
-        return None
         
         
     def roundRobin(self, quantum, sobrecarga) -> None:
      self.viz_window = Toplevel(self)
-     self.viz_window.geometry('400x400') 
-            
-     timer = 0
-     lista_de_processos_disponiveis = []
-     lista_de_processos_ja_executados = []
-     lista_exec = []
-     for i in range(len(self.processos)):
-        lista_exec.append(self.processos[i].exec)
-     tempo_de_execucao_do_primeiro_processo = 0
+     self.viz_window.geometry('800x250')
     
-    # Põe o pid na grade
+     clock = 0
+     lista_processos = sorted(self.processos, key=lambda processo: processo.get_chegada())  # Ordena por tempo de chegada
+     fila_processos = []
+     lista_exec = [processo.exec for processo in self.processos]  # Lista dos tempos de execução restantes
+    
+    # Associa cada Processo a uma linha na janela de visualização
      row_dict = {processo.get_pid(): i for i, processo in enumerate(self.processos)}
 
-     while len(lista_de_processos_ja_executados) < len(self.processos):
-        processo_em_espera = True  # Suponha que o processo esteja em espera até que seja iniciado
-        
-        # Adiciona processos disponíveis à lista
-        for processo in self.processos:
-            if processo.get_chegada() == timer:
-                if processo not in lista_de_processos_disponiveis and processo not in lista_de_processos_ja_executados:
-                    lista_de_processos_disponiveis.append(processo)
-        
-        # Visualização
-        for processo in self.processos:
-            if processo.get_chegada() <= timer and processo not in lista_de_processos_disponiveis and processo not in lista_de_processos_ja_executados:
-                processo_em_espera = True
-                label = Label(self.viz_window, bg='yellow', width=2, height=2)
-                label.grid(row=1000 + row_dict[processo.get_pid()], column=timer, columnspan=1)
-        
-        for processo in lista_de_processos_disponiveis:
-            if processo.get_tempo_execucao() > 0:
-                label = Label(self.viz_window, bg='green', width=2, height=2)  # Bloco verde para execução
-                label.grid(row=1000 + row_dict[processo.get_pid()], column=timer, columnspan=1)
+    # Imprime coluna com PID dos Processos
+     self.titulo = Label(self.viz_window, text='PIDs')
+     self.titulo.grid(row=0, column=0, columnspan=1)
 
-        if processo_em_espera:
-            label = Label(self.viz_window, bg='yellow', width=2, height=2)
-            label.grid(row=1000 + row_dict[processo.get_pid()], column=timer, columnspan=1)
+     for i in row_dict:
+        label = Label(self.viz_window, text=f'{i}:')
+        label.grid(row=1 + row_dict[i], column=0, columnspan=1)
+    
+     while len(lista_processos) > 0 or len(fila_processos) > 0:
+        # Adiciona processos que chegaram até o momento
+        while lista_processos and lista_processos[0].get_chegada() <= clock:
+            fila_processos.append(lista_processos.pop(0))
 
-        # Executa o processo atual
-        if lista_de_processos_disponiveis:
-            processo_atual = lista_de_processos_disponiveis[0]
-            if lista_exec[processo_atual.pid] > 0:
-                lista_exec[processo_atual.pid]=lista_exec[processo_atual.pid]-1
-                tempo_de_execucao_do_primeiro_processo += 1
-                if tempo_de_execucao_do_primeiro_processo == quantum:
-                    lista_de_processos_disponiveis.append(lista_de_processos_disponiveis.pop(0))  # Rotaciona o processo
-                    tempo_de_execucao_do_primeiro_processo = 0
-                    # Adiciona sobrecarga
-                    label = Label(self.viz_window, bg='red', width=2, height=2)
-                    label.grid(row=1000 + row_dict[processo_atual.get_pid()], column=timer, columnspan=1)
-                    timer += sobrecarga  # Adiciona sobrecarga
+        if fila_processos:
+            processo_atual = fila_processos.pop(0)
+            pid = processo_atual.get_pid()
+            exec_time = min(quantum, lista_exec[pid])  # Tempo a ser executado no quantum
+            
+            # Executa o processo
+            for _ in range(exec_time):
+                label = Label(self.viz_window, text='\u25A0')  # Executando
+                label.grid(row=1 + row_dict[pid], column=1 + clock, columnspan=1)
 
-            if lista_exec[processo_atual.pid] <= 0:
-                lista_de_processos_ja_executados.append(lista_de_processos_disponiveis.pop(0))
+                # Processos em espera
+                for p in fila_processos:
+                    cur = p.get_pid()
+                    label = Label(self.viz_window, text='\u25A9')  # Esperando
+                    label.grid(row=1 + row_dict[cur], column=1 + clock, columnspan=1)
 
-        timer += 1  # Avança o tempo
+                clock += 1
+            
+            lista_exec[pid] -= exec_time  # Subtrai o tempo executado
+            
+            if lista_exec[pid] > 0:
+                fila_processos.append(processo_atual)  # Reinsere no final da fila se ainda não terminou
+            
+            # Verifica se o processo terminou dentro do quantum
+            if lista_exec[pid] > 0:
+                # Adiciona sobrecarga
+                for _ in range(sobrecarga):
+                    for p in fila_processos:
+                        cur = p.get_pid()
+                        label = Label(self.viz_window, text='\u26DE')  # Bola cortada (sobrecarga)
+                        label.grid(row=1 + row_dict[cur], column=1 + clock, columnspan=1)
+                    clock += 1
+        else:
+            # Se nenhum processo está disponível, avança o tempo
+            label = Label(self.viz_window, text='\u25A1')  # Espaço Vazio
+            label.grid(row=1, column=1 + clock, columnspan=1)
+            clock += 1
 
-    # Ajuste final para a última linha no gráfico
-     for processo in self.processos:
-        if lista_exec[processo.pid] <= 0:
-            row_dict.pop(processo.get_pid())
-       
      return None
+
+
 
 
     def EDF(self, quantum, sobrecarga) -> None:
