@@ -238,7 +238,6 @@ class App(Tk):
     def roundRobin(self, quantum, sobrecarga) -> None:
      self.viz_window = Toplevel(self)
      self.viz_window.geometry('800x250')
-    
      clock = 0
      lista_processos = sorted(self.processos_copy, key=lambda processo: processo.get_chegada())  # Ordena por tempo de chegada
      fila_processos = []
@@ -301,35 +300,84 @@ class App(Tk):
      return None
 
 
-
-
     def EDF(self, quantum, sobrecarga) -> None:
      self.viz_window = Toplevel(self)
-     self.viz_window.geometry('400x400') 
-            
+     self.viz_window.geometry('800x600')
      clock = 0
      lista_processos = sorted(self.processos_copy, key=lambda processo: processo.get_chegada())
      fila_processos = []
-    
-     while lista_processos or fila_processos:
+     lista_exec = {processo.get_pid(): processo.get_tempo_execucao() for processo in self.processos_copy}
+     deadlines = {processo.get_pid(): processo.get_chegada() + processo.get_deadline() for processo in self.processos_copy}
+
+    # Associa cada Processo a uma linha na janela de visualização
+     row_dict = {processo.get_pid(): i for i, processo in enumerate(self.processos_copy)}
+
+    # Imprime coluna com PID dos Processos
+     self.titulo = Label(self.viz_window, text='PIDs')
+     self.titulo.grid(row=0, column=0, columnspan=1)
+
+     for i in row_dict:
+        label = Label(self.viz_window, text=f'{i}:')
+        label.grid(row=1 + row_dict[i], column=0, columnspan=1)
+
+     while len(lista_processos) > 0 or len(fila_processos) > 0:
         # Adiciona processos que chegaram até o momento
         while lista_processos and lista_processos[0].get_chegada() <= clock:
             fila_processos.append(lista_processos.pop(0))
-        
-        if fila_processos:
-            fila_processos.sort(key=lambda p: p.get_deadline())  # Ordena por deadline
-            processo = fila_processos[0]
-            processo.set_tempo_execucao(processo.get_tempo_execucao() - 1)
-            
-            label = Label(self.viz_window, text=f'\u25A0{processo.get_pid()}')
-            label.grid(row=1000 + fila_processos.index(processo), column=clock, columnspan=1)
-            
-            if processo.get_tempo_execucao() <= 0:
-                fila_processos.pop(0)
 
+        if fila_processos:
+            # Ordena fila de processos por deadline
+            fila_processos.sort(key=lambda p: deadlines[p.get_pid()])
+            processo_atual = fila_processos.pop(0)
+            pid = processo_atual.get_pid()
+            exec_time = min(quantum, lista_exec[pid])
+
+            for _ in range(exec_time):
+                if clock > deadlines[pid]:
+                    symbol = '\u25A3'  # Processo ultrapassou a deadline
+                else:
+                    symbol = '\u25A0'  # Executando
+                label = Label(self.viz_window, text=symbol)
+                label.grid(row=1 + row_dict[pid], column=1 + clock, columnspan=1)
+
+                # Processos em espera
+                for p in fila_processos:
+                    cur = p.get_pid()
+                    if clock > deadlines[cur]:
+                        symbol = '\u25A3'  # Processo ultrapassou a deadline
+                    else:
+                        symbol = '\u25A9'  # Esperando
+                    label = Label(self.viz_window, text=symbol)
+                    label.grid(row=1 + row_dict[cur], column=1 + clock, columnspan=1)
+
+                clock += 1
+
+            lista_exec[pid] -= exec_time  # Subtrai o tempo executado
+
+            if lista_exec[pid] > 0:
+                fila_processos.append(processo_atual)  # Reinsere no final da fila se ainda não terminou
+            
+            # Adiciona sobrecarga
+            if lista_exec[pid] > 0:  # Não adicionar sobrecarga se o processo terminou
+                for _ in range(sobrecarga):
+                    for p in fila_processos:
+                        cur = p.get_pid()
+                        symbol = '\u26DE'  # Bola cortada (sobrecarga)
+                        label = Label(self.viz_window, text=symbol)
+                        label.grid(row=1 + row_dict[cur], column=1 + clock, columnspan=1)
+                    clock += 1
+        
         else:
             # Se nenhum processo está disponível, avança o tempo
-            label = Label(self.viz_window, text=' ')
-            label.grid(row=1000, column=clock, columnspan=1)
-        
-        clock += 1
+            label = Label(self.viz_window, text='\u25A1')  # Espaço Vazio
+            label.grid(row=1, column=1 + clock, columnspan=1)
+            clock += 1
+
+     return None
+
+
+
+
+
+
+
