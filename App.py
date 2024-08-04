@@ -165,6 +165,7 @@ class App(Tk):
                     
                     if lista_exec[cur_processo] <= 0:
                         lista_chegou.pop(0)
+                        continue
                     
                     if len(lista_chegou) ==  0: continue 
 
@@ -241,6 +242,7 @@ class App(Tk):
 
                     if lista_exec[cur_processo] <= 0:
                         lista_chegou.pop(0)
+                        continue
                     
                     if len(lista_chegou) ==  0: continue
                     
