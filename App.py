@@ -154,6 +154,12 @@ class App(Tk):
             exec_time = lista_exec[pid]
             
             for _ in range(exec_time):
+                for i in lista_processos:    
+                    if i.get_chegada() == clock:
+                        fila_processos.append(i)
+                        lista_processos.pop(0)
+                    else:
+                        break
                 # Adiciona visualização gráfica para o processo em execução
                 label = Label(self.viz_window, text='\u25A0')
                 label.grid(row=1 + row_dict[pid], column=1 + clock, columnspan=1)
@@ -174,9 +180,9 @@ class App(Tk):
                 fila_processos.append(processo_atual)
         
         else:
-            # Adiciona visualização gráfica para o espaço vazio
+            '''# Adiciona visualização gráfica para o espaço vazio
             label = Label(self.viz_window, text='\u25A1')
-            label.grid(row=1, column=1 + clock, columnspan=1)
+            label.grid(row=1, column=1 + clock, columnspan=1)'''
             clock += 1
 
     # Cálculo do tempo médio de espera
