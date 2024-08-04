@@ -84,6 +84,7 @@ class App(Tk):
     def escalonador(self) -> None:
      if self.algoritmo_input is not None:
         algoritmo = self.algoritmo_input.get()
+        self.processos_copy = [Processo(p.get_pid(), p.get_chegada(), p.get_tempo_execucao(), p.get_deadline()) for p in self.processos]
         if algoritmo == "FIFO":
             self.FIFO()
         elif algoritmo == "SJF":
@@ -125,72 +126,65 @@ class App(Tk):
     def FIFO(self) -> None:
      self.viz_window = Toplevel(self)
      self.viz_window.geometry('800x250')
-
+    
      clock = 0
-     lista_processos = sorted(self.processos, key=lambda processo: processo.get_chegada())  # Ordena por tempo de chegada
-     fila_processos = []  # Lista que guarda os processos que estão na fila para execução
-     lista_exec = [processo.exec for processo in self.processos]  # Lista dos tempos de execução restantes
-
-    # Associa cada Processo a uma linha na janela de visualização
-     row_dict = {processo.get_pid(): i for i, processo in enumerate(self.processos)}
-
-    # Imprime coluna com PID dos Processos
+     lista_processos = sorted(self.processos_copy, key=lambda processo: processo.get_chegada())
+     fila_processos = []
+     lista_exec = [processo.exec for processo in self.processos_copy]
+    
+     row_dict = {processo.get_pid(): i for i, processo in enumerate(self.processos_copy)}
+    
      self.titulo = Label(self.viz_window, text='PIDs')
      self.titulo.grid(row=0, column=0, columnspan=1)
-
+    
      for i in row_dict:
         label = Label(self.viz_window, text=f'{i}:')
         label.grid(row=1 + row_dict[i], column=0, columnspan=1)
-
-     max_columns = 100  # Define um valor máximo para as colunas
+    
      while len(lista_processos) > 0 or len(fila_processos) > 0:
-        # Adiciona processos que chegaram até o momento
         while lista_processos and lista_processos[0].get_chegada() <= clock:
             fila_processos.append(lista_processos.pop(0))
-
+        
         if fila_processos:
-            cur_processo = fila_processos[0]
-            pid = cur_processo.get_pid()
-            if clock >= max_columns:
-                break  # Evita acessar colunas fora dos limites
+            processo_atual = fila_processos.pop(0)
+            pid = processo_atual.get_pid()
+            exec_time = lista_exec[pid]
             
-            exec_time = min(cur_processo.get_tempo_execucao(), 1)  # Executa por 1 unidade de tempo
-            cur_processo.set_tempo_execucao(cur_processo.get_tempo_execucao() - exec_time)
-
-            label = Label(self.viz_window, text='\u25A0')  # Executando
-            label.grid(row=1 + row_dict[pid], column=1 + clock, columnspan=1)
-
-            for p in fila_processos[1:]:
-                cur = p.get_pid()
-                label = Label(self.viz_window, text='\u25A9')  # Esperando
-                label.grid(row=1 + row_dict[cur], column=1 + clock, columnspan=1)
-
-            clock += 1
+            for _ in range(exec_time):
+                label = Label(self.viz_window, text='\u25A0')
+                label.grid(row=1 + row_dict[pid], column=1 + clock, columnspan=1)
+                
+                for p in fila_processos:
+                    cur = p.get_pid()
+                    label = Label(self.viz_window, text='\u25A9')
+                    label.grid(row=1 + row_dict[cur], column=1 + clock, columnspan=1)
+                
+                clock += 1
             
-            if cur_processo.get_tempo_execucao() <= 0:
-                fila_processos.pop(0)  # Remove o processo da fila se terminado
-
+            lista_exec[pid] = 0
+            
+            if lista_exec[pid] > 0:
+                fila_processos.append(processo_atual)
+        
         else:
-            if clock >= max_columns:
-                break  # Evita acessar colunas fora dos limites
-            
-            label = Label(self.viz_window, text='\u25A1')  # Espaço Vazio
+            label = Label(self.viz_window, text='\u25A1')
             label.grid(row=1, column=1 + clock, columnspan=1)
             clock += 1
 
      return None
+
         
     def SJF(self) -> None:
      self.viz_window = Toplevel(self)
      self.viz_window.geometry('800x250')
 
      clock = 0
-     lista_processos = sorted(self.processos, key=lambda processo: processo.get_chegada())  # Ordena por tempo de chegada
+     lista_processos = sorted(self.processos_copy, key=lambda processo: processo.get_chegada())  # Ordena por tempo de chegada
      lista_chegou = []  # Lista que guarda os processos à medida que eles chegam na CPU
-     lista_exec = [processo.exec for processo in self.processos]  # Lista dos tempos de execução restantes
+     lista_exec = [processo.exec for processo in self.processos_copy]  # Lista dos tempos de execução restantes
 
     # Associa cada Processo a uma linha na janela de visualização
-     row_dict = {processo.get_pid(): i for i, processo in enumerate(self.processos)}
+     row_dict = {processo.get_pid(): i for i, processo in enumerate(self.processos_copy)}
 
     # Imprime coluna com PID dos Processos
      self.titulo = Label(self.viz_window, text='PIDs')
@@ -246,12 +240,12 @@ class App(Tk):
      self.viz_window.geometry('800x250')
     
      clock = 0
-     lista_processos = sorted(self.processos, key=lambda processo: processo.get_chegada())  # Ordena por tempo de chegada
+     lista_processos = sorted(self.processos_copy, key=lambda processo: processo.get_chegada())  # Ordena por tempo de chegada
      fila_processos = []
-     lista_exec = [processo.exec for processo in self.processos]  # Lista dos tempos de execução restantes
+     lista_exec = [processo.exec for processo in self.processos_copy]  # Lista dos tempos de execução restantes
     
     # Associa cada Processo a uma linha na janela de visualização
-     row_dict = {processo.get_pid(): i for i, processo in enumerate(self.processos)}
+     row_dict = {processo.get_pid(): i for i, processo in enumerate(self.processos_copy)}
 
     # Imprime coluna com PID dos Processos
      self.titulo = Label(self.viz_window, text='PIDs')
@@ -314,7 +308,7 @@ class App(Tk):
      self.viz_window.geometry('400x400') 
             
      clock = 0
-     lista_processos = sorted(self.processos, key=lambda processo: processo.get_chegada())
+     lista_processos = sorted(self.processos_copy, key=lambda processo: processo.get_chegada())
      fila_processos = []
     
      while lista_processos or fila_processos:
