@@ -70,7 +70,7 @@ class App(Tk):
             delete_button.destroy()
             self.processos.remove(process)
             del self.widgets[pid_to_remove]
-            for i in range(pid_to_remove, len(self.processos)-1):
+            for i in range(pid_to_remove, len(self.processos)):
                 self.processos[i].pid -= 1 
                 new_pid = self.processos[i].pid
             
@@ -125,7 +125,6 @@ class App(Tk):
     def FIFO(self) -> None:
      self.viz_window = Toplevel(self)
      self.viz_window.geometry('900x250')
-    
      clock = 0
      lista_processos = sorted(self.processos_copy, key=lambda processo: processo.get_chegada())
      fila_processos = []
@@ -194,6 +193,12 @@ class App(Tk):
     # Adiciona o tempo médio de espera na visualização gráfica
      tempo_medio_label = Label(self.viz_window, text=f"Tempo médio de espera: {tempo_medio_espera:.2f}", font=("Arial", 10))
      tempo_medio_label.grid(row=len(row_dict) + 2, column=0, columnspan=100)
+     
+     #Legenda gráfico
+     legenda_exec = Label(self.viz_window, text="Executando: \u25A0")
+     legenda_exec.grid(row=len(row_dict) + 3, column=0, columnspan=100)
+     legenda_espera = Label(self.viz_window, text="Espera: \u25A9")
+     legenda_espera.grid(row=len(row_dict) + 4, column=0, columnspan=100)
     
      return None
 
@@ -278,7 +283,12 @@ class App(Tk):
      tempo_medio_espera = (tempo_espera + tempo_execucao) / num_processos 
      label = Label(self.viz_window, text=f'Tempo Médio de Espera: {tempo_medio_espera:.2f}')
      label.grid(row=1 + len(row_dict), column=0, columnspan=max_columns)
-
+     
+     #Legenda gráfico
+     legenda_exec = Label(self.viz_window, text="Executando: \u25A0")
+     legenda_exec.grid(row=len(row_dict) + 2, column=0, columnspan=max_columns)
+     legenda_espera = Label(self.viz_window, text="Espera: \u25A9")
+     legenda_espera.grid(row=len(row_dict) + 3, column=0, columnspan=max_columns)
      return None
 
 
@@ -370,8 +380,17 @@ class App(Tk):
      num_processos = len(self.processos_copy)
      tempo_medio_espera = (total_espera + total_execucao + total_sobrecarga) / num_processos
      self.tempo_medio_espera_label = Label(self.viz_window, text=f'Tempo Médio de Espera: {tempo_medio_espera:.2f}')
-     self.tempo_medio_espera_label.grid(row=1, column=1 + clock, columnspan=1)
-
+     self.tempo_medio_espera_label.grid(row=len(row_dict) + 1, column=0, columnspan=1)
+     
+     #Legenda gráfico
+     legenda_exec = Label(self.viz_window, text="Executando: \u25A0")
+     legenda_exec.grid(row=len(row_dict) + 2, column=0, columnspan=1)
+     legenda_espera = Label(self.viz_window, text="Espera: \u25A9")
+     legenda_espera.grid(row=len(row_dict) + 3, column=0, columnspan=1)
+     lengenda_sobrecarga = Label(self.viz_window, text="Sobrecarga: \u26DE")
+     lengenda_sobrecarga.grid(row=len(row_dict) + 4, column=0, columnspan=1)
+     nada_executa = Label(self.viz_window, text="Sem processos: \u25A1")
+     nada_executa.grid(row=len(row_dict) + 5, column= 0, columnspan=1)
      return None
 
 
@@ -463,8 +482,19 @@ class App(Tk):
      num_processos = len(self.processos_copy)
      tempo_medio_espera = (total_espera + total_execucao + total_sobrecarga) / num_processos
      self.tempo_medio_espera_label = Label(self.viz_window, text=f"Tempo Médio de Espera: {tempo_medio_espera:.2f}")
-     self.tempo_medio_espera_label.grid(row=1, column=1 + clock, columnspan=1)
- 
+     self.tempo_medio_espera_label.grid(row=len(row_dict) + 2, column=0, columnspan=1)
+     
+     #Legenda gráfico
+     legenda_exec = Label(self.viz_window, text="Executando: \u25A0")
+     legenda_exec.grid(row=len(row_dict) + 3, column=0, columnspan=1)
+     legenda_espera = Label(self.viz_window, text="Espera: \u25A9")
+     legenda_espera.grid(row=len(row_dict) + 4, column=0, columnspan=1)
+     lengenda_sobrecarga = Label(self.viz_window, text="Sobrecarga: \u26DE")
+     lengenda_sobrecarga.grid(row=len(row_dict) + 5, column=0, columnspan=1)
+     legenda_deadline = Label(self.viz_window, text="Ultrapassou Deadline: \u25A3")
+     legenda_deadline.grid(row=len(row_dict) + 6, column=0, columnspan=1)
+     nada_executando = Label(self.viz_window, text = "Sem processos: \u25A1")
+     nada_executando.grid(row=len(row_dict) + 7, column=0, columnspan=1)
      return None
 
 
