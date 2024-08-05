@@ -179,9 +179,8 @@ class App(Tk):
                 fila_processos.append(processo_atual)
         
         else:
-            '''# Adiciona visualização gráfica para o espaço vazio
-            label = Label(self.viz_window, text='\u25A1')
-            label.grid(row=1, column=1 + clock, columnspan=1)'''
+            label = Label(self.viz_window, text='\u25A1')  # Espaço Vazio
+            label.grid(row=1, column=1 + clock, columnspan=1)
             clock += 1
 
     # Cálculo do tempo médio de espera
@@ -199,7 +198,8 @@ class App(Tk):
      legenda_exec.grid(row=len(row_dict) + 3, column=0, columnspan=100)
      legenda_espera = Label(self.viz_window, text="Espera: \u25A9")
      legenda_espera.grid(row=len(row_dict) + 4, column=0, columnspan=100)
-    
+     nada_executando = Label(self.viz_window, text = "Sem processos: \u25A1")
+     nada_executando.grid(row=len(row_dict) + 5, column=0, columnspan=100)
      return None
 
     def SJF(self) -> None:
@@ -274,8 +274,8 @@ class App(Tk):
             if clock >= max_columns:
                 break  # Evita acessar colunas fora dos limites
             
-            '''label = Label(self.viz_window, text='\u25A1')  # Espaço Vazio
-            label.grid(row=1, column=1 + clock, columnspan=1)'''
+            label = Label(self.viz_window, text='\u25A1')  # Espaço Vazio
+            label.grid(row=1, column=1 + clock, columnspan=1)
             clock += 1
 
     # Calcula e exibe o tempo médio de espera
@@ -289,6 +289,9 @@ class App(Tk):
      legenda_exec.grid(row=len(row_dict) + 2, column=0, columnspan=max_columns)
      legenda_espera = Label(self.viz_window, text="Espera: \u25A9")
      legenda_espera.grid(row=len(row_dict) + 3, column=0, columnspan=max_columns)
+     nada_executa = Label(self.viz_window, text="Sem processos: \u25A1")
+     nada_executa.grid(row=len(row_dict) + 4, column= 0, columnspan=max_columns)
+     
      return None
 
 
