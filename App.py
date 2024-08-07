@@ -209,7 +209,7 @@ class App(Tk):
      clock = 0
 
     # Ordena primeiro por tempo de chegada e depois por tempo de execução (em caso de empate)
-     lista_processos = sorted(self.processos_copy, key=lambda processo: (processo.get_chegada(), processo.get_tempo_execucao()))  
+     lista_processos = sorted(self.processos_copy, key=lambda processo: processo.get_chegada())  
      lista_chegou = []  # Lista que guarda os processos à medida que eles chegam na CPU
      lista_exec = [processo.exec for processo in self.processos_copy]  # Lista dos tempos de execução restantes
 
@@ -234,8 +234,9 @@ class App(Tk):
         while lista_processos and lista_processos[0].get_chegada() <= clock:
             lista_chegou.append(lista_processos.pop(0))
 
-        # Não reordena a lista_chegou enquanto um processo está em execução
+        
         if lista_chegou:
+            lista_chegou = sorted(lista_chegou, key=lambda processo: processo.get_tempo_execucao())
             cur_processo = lista_chegou[0].get_pid()
             if clock >= max_columns:
                 break  # Evita acessar colunas fora dos limites
