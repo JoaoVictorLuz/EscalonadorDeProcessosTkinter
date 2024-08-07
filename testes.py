@@ -42,4 +42,3 @@ pessoa.idade = 20
 pessoa.salario = 500
 print(pessoa.nome)
 print(pessoa.idade)
-print(pessoa.salario)
