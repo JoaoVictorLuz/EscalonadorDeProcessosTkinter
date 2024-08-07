@@ -328,7 +328,7 @@ class App(Tk):
             fila_processos.append(lista_processos.pop(0))
 
         if fila_processos:
-            processo_atual = fila_processos.pop(0)
+            processo_atual = fila_processos[0] # fila_processos.pop(0)
             pid = processo_atual.get_pid()
             exec_time = min(quantum, lista_exec[pid])  # Tempo a ser executado no quantum
 
@@ -349,6 +349,7 @@ class App(Tk):
 
                 # Processos em espera
                 for p in fila_processos:
+                    if p == fila_processos[0]: continue
                     cur = p.get_pid()
                     label = Label(self.viz_window, text='\u22A0')  # Esperando
                     label.grid(row=1 + row_dict[cur], column=1 + clock, columnspan=1)
@@ -360,19 +361,35 @@ class App(Tk):
 
             lista_exec[pid] -= exec_time  # Subtrai o tempo executado
 
-            if lista_exec[pid] > 0:
-                fila_processos.append(processo_atual)  # Reinsere no final da fila se ainda não terminou
-
             # Adiciona sobrecarga
             if lista_exec[pid] > 0 and len(fila_processos) > 0:
-                for _ in range(sobrecarga):
+                for _ in range(sobrecarga): # Verifica se chegou algum processo durante a sobrecarga
+                    for i in lista_processos:    
+                        if i.get_chegada() == clock:
+                            fila_processos.append(i)
+                            lista_processos.pop(0)
+                        else:
+                            break
+                    
                     for p in fila_processos:
                         cur = p.get_pid()
-                        label = Label(self.viz_window, text='\u26DE')  # Bola cortada (sobrecarga)
-                        label.grid(row=1 + row_dict[cur], column=1 + clock, columnspan=1)
+                        
+                        if p == fila_processos[0]:
+                            label = Label(self.viz_window, text='\u26DE')  # Bola cortada (sobrecarga)
+                            label.grid(row=1 + row_dict[cur], column=1 + clock, columnspan=1)
+                        
+                        else:
+                            label = Label(self.viz_window, text='\u22A0')  # Esperando
+                            label.grid(row=1 + row_dict[cur], column=1 + clock, columnspan=1)
+                        
                         total_sobrecarga += 1
 
                     clock += 1
+            
+            fila_processos.pop(0)
+            
+            if lista_exec[pid] > 0:
+                fila_processos.append(processo_atual)  # Reinsere no final da fila se ainda não terminou
 
         else:
             # Se nenhum processo está disponível, avança o tempo
