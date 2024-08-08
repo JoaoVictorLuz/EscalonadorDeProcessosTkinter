@@ -23,7 +23,7 @@ class Processo:
         self.exec = tempo_execucao
         return None
     
-    def get_deadline(self):
+    def get_deadline(self) -> int:
         return self.deadline
     
     

@@ -53,7 +53,18 @@ class App(Tk):
         self.algoritmo_input = ttk.Combobox (self,values=itens)
         self.algoritmo_input.grid(row=1, column=2)
 
-
+    def legenda(self, vizwindow, dict):
+        legenda_exec = Label(vizwindow, text="Executando: \u25A0")
+        legenda_exec.grid(row=len(dict) + 3, column=0, columnspan=1)
+        legenda_espera = Label(vizwindow, text="Espera: \u22A0")
+        legenda_espera.grid(row=len(dict) + 4, column=0, columnspan=1)
+        lengenda_sobrecarga = Label(vizwindow, text="Sobrecarga: \u26DE")
+        lengenda_sobrecarga.grid(row=len(dict) + 5, column=0, columnspan=1)
+        nada_executa = Label(vizwindow, text="Sem processos: \u25A1")
+        nada_executa.grid(row=len(dict) + 6, column= 0, columnspan=1)
+        legenda_deadline = Label(vizwindow, text="Ultrapassou Deadline(EDF): \u25A3")
+        legenda_deadline.grid(row=len(dict) + 7, column=0, columnspan=1)
+        return None
 
     def output_process(self, process: Processo) -> None:
         pid=process.pid
@@ -194,13 +205,7 @@ class App(Tk):
      tempo_medio_label.grid(row=len(row_dict) + 2, column=0, columnspan=100)
      
      #Legenda gráfico
-     legenda_exec = Label(self.viz_window, text="Executando: \u25A0")
-     legenda_exec.grid(row=len(row_dict) + 3, column=0, columnspan=100)
-     legenda_espera = Label(self.viz_window, text="Espera: \u22A0")
-     legenda_espera.grid(row=len(row_dict) + 4, column=0, columnspan=100)
-     nada_executando = Label(self.viz_window, text = "Sem processos: \u25A1")
-     nada_executando.grid(row=len(row_dict) + 5, column=0, columnspan=100)
-     return None
+     self.legenda(self.viz_window, row_dict)
 
     def SJF(self) -> None:
      self.viz_window = Toplevel(self)
@@ -286,15 +291,7 @@ class App(Tk):
      label.grid(row=1 + len(row_dict), column=0, columnspan=max_columns)
      
      #Legenda gráfico
-     legenda_exec = Label(self.viz_window, text="Executando: \u25A0")
-     legenda_exec.grid(row=len(row_dict) + 2, column=0, columnspan=max_columns)
-     legenda_espera = Label(self.viz_window, text="Espera: \u22A0")
-     legenda_espera.grid(row=len(row_dict) + 3, column=0, columnspan=max_columns)
-     nada_executa = Label(self.viz_window, text="Sem processos: \u25A1")
-     nada_executa.grid(row=len(row_dict) + 4, column= 0, columnspan=max_columns)
-     
-     return None
-
+     self.legenda(self.viz_window, row_dict)
 
 
     def roundRobin(self, quantum, sobrecarga) -> None:
@@ -404,15 +401,7 @@ class App(Tk):
      self.tempo_medio_espera_label.grid(row=len(row_dict) + 1, column=0, columnspan=1)
      
      #Legenda gráfico
-     legenda_exec = Label(self.viz_window, text="Executando: \u25A0")
-     legenda_exec.grid(row=len(row_dict) + 2, column=0, columnspan=1)
-     legenda_espera = Label(self.viz_window, text="Espera: \u22A0")
-     legenda_espera.grid(row=len(row_dict) + 3, column=0, columnspan=1)
-     lengenda_sobrecarga = Label(self.viz_window, text="Sobrecarga: \u26DE")
-     lengenda_sobrecarga.grid(row=len(row_dict) + 4, column=0, columnspan=1)
-     nada_executa = Label(self.viz_window, text="Sem processos: \u25A1")
-     nada_executa.grid(row=len(row_dict) + 5, column= 0, columnspan=1)
-     return None
+     self.legenda(self.viz_window, row_dict)
 
 
     def EDF(self, quantum, sobrecarga) -> None:
@@ -423,7 +412,7 @@ class App(Tk):
      lista_processos = sorted(self.processos_copy, key=lambda processo: processo.get_chegada())
      fila_processos = []
      lista_exec = {processo.get_pid(): processo.get_tempo_execucao() for processo in self.processos_copy}
-     deadlines = {processo.get_pid(): processo.get_chegada() + processo.get_deadline() for processo in self.processos_copy}
+     deadlines = {processo.get_pid(): processo.get_deadline() for processo in self.processos_copy}
 
     # Associa cada Processo a uma linha na janela de visualização
      row_dict = {processo.get_pid(): i for i, processo in enumerate(self.processos_copy)}
@@ -449,12 +438,18 @@ class App(Tk):
         if fila_processos:
             # Ordena fila de processos por deadline
             fila_processos.sort(key=lambda p: deadlines[p.get_pid()])
-            processo_atual = fila_processos.pop(0)
+            processo_atual = fila_processos[0]
             pid = processo_atual.get_pid()
             exec_time = min(quantum, lista_exec[pid])
 
             for _ in range(exec_time):
-                if clock > deadlines[pid]:
+                for i in lista_processos:    
+                    if i.get_chegada() == clock:
+                        fila_processos.append(i)
+                        lista_processos.pop(0)
+                    else:
+                        break
+                if  deadlines[pid]<0:
                     symbol = '\u25A3'  # Processo ultrapassou a deadline
                 else:
                     symbol = '\u25A0'  # Executando
@@ -463,44 +458,56 @@ class App(Tk):
                 label.grid(row=1 + row_dict[pid], column=1 + clock, columnspan=1)
 
                 total_execucao += 1
-
                 # Processos em espera
                 for p in fila_processos:
+                    if p == fila_processos[0]: continue
                     cur = p.get_pid()                    
                     symbol = '\u22A0'  # Esperando
                     label = Label(self.viz_window, text=symbol)
                     label.grid(row=1 + row_dict[cur], column=1 + clock, columnspan=1)
                     total_espera += 1
-
-                for i in fila_processos:
-                    deadlines[i.pid]=deadlines[i.pid]-1
                 clock += 1
 
             lista_exec[pid] -= exec_time  # Subtrai o tempo executado
-
-            if lista_exec[pid] > 0:
-                fila_processos.append(processo_atual)  # Reinsere no final da fila se ainda não terminou
+            for i in fila_processos:
+                deadlines[i.pid]=deadlines[i.pid]-exec_time   #subtrai tempo de execução da deadline
 
             # Adiciona sobrecarga
-            if lista_exec[pid] > 0 and len(fila_processos) > 0:
-                for _ in range(sobrecarga):
+            if lista_exec[pid] > 0 and len(fila_processos) > 0: 
+                for _ in range(sobrecarga): # Verifica se chegou algum processo durante a sobrecarga
+                    for i in lista_processos:    
+                        if i.get_chegada() == clock:
+                            fila_processos.append(i)
+                            lista_processos.pop(0)
+                        else:
+                            break
+                    
                     for p in fila_processos:
                         cur = p.get_pid()
-                        symbol = '\u26DE'  # Bola cortada (sobrecarga)
-                        label = Label(self.viz_window, text=symbol)
-                        label.grid(row=1 + row_dict[cur], column=1 + clock, columnspan=1)
+                        
+                        if p == fila_processos[0]:
+                            label = Label(self.viz_window, text='\u26DE')  # Bola cortada (sobrecarga)
+                            label.grid(row=1 + row_dict[cur], column=1 + clock, columnspan=1)
+                            deadlines[cur]=deadlines[cur]-1 #Diminui a deadline
+                        else:
+                            label = Label(self.viz_window, text='\u22A0')  # Esperando
+                            label.grid(row=1 + row_dict[cur], column=1 + clock, columnspan=1)
+                            deadlines[cur]=deadlines[cur]-1 #Diminui a deadline
                         total_sobrecarga += 1
-                    for i in fila_processos:
-                        deadlines[i.pid]=deadlines[i.pid]-1
+                    
                     clock += 1
-
+            
+            fila_processos.pop(0)
+            if lista_exec[pid] > 0:                    #Reincere o processo caso não tenha acabado
+                fila_processos.append(processo_atual) 
+       
         else:
             # Se nenhum processo está disponível, avança o tempo
             label = Label(self.viz_window, text='\u25A1')  # Espaço Vazio
             label.grid(row=1, column=1 + clock, columnspan=1)
-            for i in fila_processos:
-                    deadlines[i.pid]=deadlines[i.pid]-1
             clock += 1
+        for i in fila_processos:
+         print(deadlines[i.pid])
 
     # Calcula o tempo médio de espera
      num_processos = len(self.processos_copy)
@@ -509,20 +516,8 @@ class App(Tk):
      self.tempo_medio_espera_label.grid(row=len(row_dict) + 2, column=0, columnspan=1)
      
      #Legenda gráfico
-     legenda_exec = Label(self.viz_window, text="Executando: \u25A0")
-     legenda_exec.grid(row=len(row_dict) + 3, column=0, columnspan=1)
-     legenda_espera = Label(self.viz_window, text="Espera: \u22A0")
-     legenda_espera.grid(row=len(row_dict) + 4, column=0, columnspan=1)
-     lengenda_sobrecarga = Label(self.viz_window, text="Sobrecarga: \u26DE")
-     lengenda_sobrecarga.grid(row=len(row_dict) + 5, column=0, columnspan=1)
-     legenda_deadline = Label(self.viz_window, text="Ultrapassou Deadline: \u25A3")
-     legenda_deadline.grid(row=len(row_dict) + 6, column=0, columnspan=1)
-     nada_executando = Label(self.viz_window, text = "Sem processos: \u25A1")
-     nada_executando.grid(row=len(row_dict) + 7, column=0, columnspan=1)
-     return None
-
-
-
+     self.legenda(self.viz_window, row_dict)
+     
 " cabecinha <3 "
 
 
