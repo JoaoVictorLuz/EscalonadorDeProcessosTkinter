@@ -1,8 +1,8 @@
 from tkinter import *
 from tkinter import ttk
-from algoritmosDeFato import *
 from Processo import *
 from App import *
+from Algoritmos import * 
 
 teste = App()
 teste.mainloop()

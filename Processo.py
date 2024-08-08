@@ -1,6 +1,5 @@
 from tkinter import *
 from tkinter import ttk
-from algoritmosDeFato import *
 
 class Processo:
     def __init__(self, pid, tempo_chegada: int, tempo_execucao: int, deadline: int) -> None:
