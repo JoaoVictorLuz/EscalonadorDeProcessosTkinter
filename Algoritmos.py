@@ -3,6 +3,14 @@ from tkinter import ttk
 from tkinter import font
 from Processo import *
 
+def calcula_e_mostra_o_tempo_medio_de_espera(App, row_dict, total_espera, total_execucao, total_sobrecarga):
+    num_processos = len(App.processos_copy)
+    tempo_medio_espera = (total_espera + total_execucao + total_sobrecarga) / num_processos
+    label = Label(App.viz_window, text=f'Tempo Médio de Espera: {tempo_medio_espera:.2f}')
+    label.grid(row=len(row_dict) + 1, column=0, columnspan=10)
+
+
+
 def FIFO(App) -> None:
      App.viz_window = Toplevel(App)
      App.viz_window.geometry('900x250')
@@ -64,18 +72,14 @@ def FIFO(App) -> None:
             label.grid(row=1, column=1 + clock, columnspan=1)
             clock += 1
 
-    # Cálculo do tempo médio de espera
+    # Calcula e mostra o tempo médio de espera
      total_espera = sum(tempo_espera.values())
      total_execucao = sum(tempo_execucao.values())
-     num_processos = len(App.processos_copy)
-     tempo_medio_espera = (total_espera + total_execucao) / num_processos
-    
-    # Adiciona o tempo médio de espera na visualização gráfica
-     tempo_medio_label = Label(App.viz_window, text=f"Tempo médio de espera: {tempo_medio_espera:.2f}", font=("Arial", 10))
-     tempo_medio_label.grid(row=len(row_dict) + 2, column=0, columnspan=100)
-     
+     calcula_e_mostra_o_tempo_medio_de_espera(App, row_dict, total_espera, total_execucao, total_sobrecarga=0)
+
      #Legenda gráfico
      App.legenda(App.viz_window, row_dict)
+
 
 def SJF(App) -> None:
      App.viz_window = Toplevel(App)
@@ -154,11 +158,8 @@ def SJF(App) -> None:
             label.grid(row=1, column=1 + clock, columnspan=1)
             clock += 1
 
-    # Calcula e exibe o tempo médio de espera
-     num_processos = len(App.processos_copy)
-     tempo_medio_espera = (tempo_espera + tempo_execucao) / num_processos 
-     label = Label(App.viz_window, text=f'Tempo Médio de Espera: {tempo_medio_espera:.2f}')
-     label.grid(row=1 + len(row_dict), column=0, columnspan=max_columns)
+     total_sobrecarga = 0
+     calcula_e_mostra_o_tempo_medio_de_espera(App, row_dict, tempo_espera, tempo_execucao, total_sobrecarga)
      
      #Legenda gráfico
      App.legenda(App.viz_window, row_dict)
@@ -265,10 +266,7 @@ def roundRobin(App, quantum, sobrecarga) -> None:
             clock += 1
 
     # Calcula o tempo médio de espera
-     num_processos = len(App.processos_copy)
-     tempo_medio_espera = (total_espera + total_execucao + total_sobrecarga) / num_processos
-     App.tempo_medio_espera_label = Label(App.viz_window, text=f'Tempo Médio de Espera: {tempo_medio_espera:.2f}')
-     App.tempo_medio_espera_label.grid(row=len(row_dict) + 1, column=0, columnspan=1)
+     calcula_e_mostra_o_tempo_medio_de_espera(App, row_dict, total_espera, total_execucao, total_sobrecarga)
      
      #Legenda gráfico
      App.legenda(App.viz_window, row_dict)
@@ -380,10 +378,7 @@ def EDF(App, quantum, sobrecarga) -> None:
          print(deadlines[i.pid])
 
     # Calcula o tempo médio de espera
-     num_processos = len(App.processos_copy)
-     tempo_medio_espera = (total_espera + total_execucao + total_sobrecarga) / num_processos
-     App.tempo_medio_espera_label = Label(App.viz_window, text=f"Tempo Médio de Espera: {tempo_medio_espera:.2f}")
-     App.tempo_medio_espera_label.grid(row=len(row_dict) + 2, column=0, columnspan=1)
+     calcula_e_mostra_o_tempo_medio_de_espera(App, row_dict, total_espera, total_execucao, total_sobrecarga)
      
      #Legenda gráfico
      App.legenda(App.viz_window, row_dict)
