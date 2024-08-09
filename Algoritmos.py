@@ -3,6 +3,23 @@ from tkinter import ttk
 from tkinter import font
 from Processo import *
 
+def cria_a_janela_e_imprime_coluna_com_PID_dos_processos(App) -> dict:
+    App.viz_window = Toplevel(App)
+    App.viz_window.geometry('900x250')
+
+    # Associa cada Processo a uma linha na janela de visualização
+    row_dict = {processo.get_pid(): i for i, processo in enumerate(App.processos_copy)}
+
+    # Imprime coluna com PID dos Processos
+    App.titulo = Label(App.viz_window, text='PIDs')
+    App.titulo.grid(row=0, column=0, columnspan=1)
+
+    for i in row_dict:
+       label = Label(App.viz_window, text=f'{i}:')
+       label.grid(row=1 + row_dict[i], column=0, columnspan=1)
+    return row_dict
+
+
 def calcula_e_mostra_o_tempo_medio_de_espera(App, row_dict, total_espera, total_execucao, total_sobrecarga):
     num_processos = len(App.processos_copy)
     tempo_medio_espera = (total_espera + total_execucao + total_sobrecarga) / num_processos
@@ -12,21 +29,14 @@ def calcula_e_mostra_o_tempo_medio_de_espera(App, row_dict, total_espera, total_
 
 
 def FIFO(App) -> None:
-     App.viz_window = Toplevel(App)
-     App.viz_window.geometry('900x250')
+     
+
      clock = 0
      lista_processos = sorted(App.processos_copy, key=lambda processo: processo.get_chegada())
      fila_processos = []
      lista_exec = [processo.exec for processo in App.processos_copy]
     
-     row_dict = {processo.get_pid(): i for i, processo in enumerate(App.processos_copy)}
-    
-     App.titulo = Label(App.viz_window, text='PIDs')
-     App.titulo.grid(row=0, column=0, columnspan=1)
-    
-     for i in row_dict:
-        label = Label(App.viz_window, text=f'{i}:')
-        label.grid(row=1 + row_dict[i], column=0, columnspan=1)
+     row_dict = cria_a_janela_e_imprime_coluna_com_PID_dos_processos(App)
     
     # Contadores de espera e execução
      tempo_espera = {p.get_pid(): 0 for p in App.processos_copy}
@@ -82,29 +92,16 @@ def FIFO(App) -> None:
 
 
 def SJF(App) -> None:
-     App.viz_window = Toplevel(App)
-     App.viz_window.geometry('900x250')
-
+     
      clock = 0
-
     # Ordena primeiro por tempo de chegada e depois por tempo de execução (em caso de empate)
      lista_processos = sorted(App.processos_copy, key=lambda processo: processo.get_chegada())  
      lista_chegou = []  # Lista que guarda os processos à medida que eles chegam na CPU
      lista_exec = [processo.exec for processo in App.processos_copy]  # Lista dos tempos de execução restantes
 
-    # Associa cada Processo a uma linha na janela de visualização
-     row_dict = {processo.get_pid(): i for i, processo in enumerate(App.processos_copy)}
-
-    # Imprime coluna com PID dos Processos
-     App.titulo = Label(App.viz_window, text='PIDs')
-     App.titulo.grid(row=0, column=0, columnspan=1)
-
-     for i in row_dict:
-        label = Label(App.viz_window, text=f'{i}:')
-        label.grid(row=1 + row_dict[i], column=0, columnspan=1)
+     row_dict = cria_a_janela_e_imprime_coluna_com_PID_dos_processos(App)
 
      max_columns = 100  # Define um valor máximo para as colunas
-    
      tempo_espera = 0
      tempo_execucao = 0
     
@@ -166,24 +163,12 @@ def SJF(App) -> None:
 
 
 def roundRobin(App, quantum, sobrecarga) -> None:
-     App.viz_window = Toplevel(App)
-     App.viz_window.geometry('900x250')
-
      clock = 0
      lista_processos = sorted(App.processos_copy, key=lambda processo: processo.get_chegada())  # Ordena por tempo de chegada
      fila_processos = []
      lista_exec = [processo.exec for processo in App.processos_copy]  # Lista dos tempos de execução restantes
-
-    # Associa cada Processo a uma linha na janela de visualização
-     row_dict = {processo.get_pid(): i for i, processo in enumerate(App.processos_copy)}
-
-    # Imprime coluna com PID dos Processos
-     App.titulo = Label(App.viz_window, text='PIDs')
-     App.titulo.grid(row=0, column=0, columnspan=1)
-
-     for i in row_dict:
-        label = Label(App.viz_window, text=f'{i}:')
-        label.grid(row=1 + row_dict[i], column=0, columnspan=1)
+     
+     row_dict = cria_a_janela_e_imprime_coluna_com_PID_dos_processos(App)
 
     # Contadores
      total_espera = 0
@@ -272,26 +257,16 @@ def roundRobin(App, quantum, sobrecarga) -> None:
      App.legenda(App.viz_window, row_dict)
 
 
-def EDF(App, quantum, sobrecarga) -> None:
-     App.viz_window = Toplevel(App)
-     App.viz_window.geometry('900x250')
 
+
+def EDF(App, quantum, sobrecarga) -> None:
      clock = 0
      lista_processos = sorted(App.processos_copy, key=lambda processo: processo.get_chegada())
      fila_processos = []
      lista_exec = {processo.get_pid(): processo.get_tempo_execucao() for processo in App.processos_copy}
      deadlines = {processo.get_pid(): processo.get_deadline() for processo in App.processos_copy}
 
-    # Associa cada Processo a uma linha na janela de visualização
-     row_dict = {processo.get_pid(): i for i, processo in enumerate(App.processos_copy)}
-
-    # Imprime coluna com PID dos Processos
-     App.titulo = Label(App.viz_window, text='PIDs')
-     App.titulo.grid(row=0, column=0, columnspan=1)
-
-     for i in row_dict:
-        label = Label(App.viz_window, text=f'{i}:')
-        label.grid(row=1 + row_dict[i], column=0, columnspan=1)
+     row_dict = cria_a_janela_e_imprime_coluna_com_PID_dos_processos(App)
 
     # Inicializa contadores
      total_espera = 0
@@ -374,8 +349,6 @@ def EDF(App, quantum, sobrecarga) -> None:
             label = Label(App.viz_window, text='\u25A1')  # Espaço Vazio
             label.grid(row=1, column=1 + clock, columnspan=1)
             clock += 1
-        for i in fila_processos:
-         print(deadlines[i.pid])
 
     # Calcula o tempo médio de espera
      calcula_e_mostra_o_tempo_medio_de_espera(App, row_dict, total_espera, total_execucao, total_sobrecarga)
