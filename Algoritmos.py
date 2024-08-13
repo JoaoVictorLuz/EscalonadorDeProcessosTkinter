@@ -2,6 +2,7 @@ from tkinter import *
 from tkinter import ttk
 from tkinter import font
 from Processo import *
+import tkinter as tk
 
 def cria_a_janela_e_imprime_coluna_com_PID_dos_processos(App) -> dict:
     App.viz_window = Toplevel(App)
@@ -26,6 +27,14 @@ def calcula_e_mostra_o_tempo_medio_de_espera(App, row_dict, total_espera, total_
     label = Label(App.viz_window, text=f'Tempo Médio de Espera: {tempo_medio_espera:.2f}')
     label.grid(row=len(row_dict) + 1, column=0, columnspan=10)
 
+
+def tksleep(self, time:float) -> None:
+    """
+    Emulating `time.sleep(seconds)`
+    """
+    self.after(int(time*1000), self.quit)
+    self.mainloop()
+tk.Misc.tksleep = tksleep
 
 
 def FIFO(App) -> None:
@@ -71,6 +80,7 @@ def FIFO(App) -> None:
                     tempo_espera[cur] += 1
                 
                 clock += 1
+                tksleep(App, 0.5)
             
             lista_exec[pid] = 0
             
@@ -145,6 +155,7 @@ def SJF(App) -> None:
                         tempo_espera += 1
 
                 clock += 1
+                tksleep(App, 0.5)
 
             lista_chegou.pop(0)  # Remove o processo atual da fila após a execução completa
         else:
@@ -211,6 +222,7 @@ def roundRobin(App, quantum, sobrecarga) -> None:
                     total_espera += 1
 
                 clock += 1
+                tksleep(App, 0.5)
 
             lista_exec[pid] -= exec_time  # Subtrai o tempo executado
 
@@ -236,8 +248,8 @@ def roundRobin(App, quantum, sobrecarga) -> None:
                             label.grid(row=1 + row_dict[cur], column=1 + clock, columnspan=1)
                         
                         total_sobrecarga += 1
-
                     clock += 1
+                    tksleep(App, 0.5)
             
             fila_processos.pop(0)
             
@@ -309,6 +321,7 @@ def EDF(App, quantum, sobrecarga) -> None:
                     label = Label(App.viz_window, text=symbol)
                     label.grid(row=1 + row_dict[cur], column=1 + clock, columnspan=1)
                     total_espera += 1
+                tksleep(App, 0.5)
                 clock += 1
 
             lista_exec[pid] -= exec_time  # Subtrai o tempo executado
@@ -337,7 +350,7 @@ def EDF(App, quantum, sobrecarga) -> None:
                             label.grid(row=1 + row_dict[cur], column=1 + clock, columnspan=1)
                             deadlines[cur]=deadlines[cur]-1 #Diminui a deadline
                         total_sobrecarga += 1
-                    
+                    tksleep(App, 0.5)
                     clock += 1
             
             fila_processos.pop(0)
