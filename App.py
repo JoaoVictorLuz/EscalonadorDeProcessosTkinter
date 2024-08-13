@@ -60,8 +60,8 @@ class App(Tk):
         legenda_espera.grid(row=len(dict) + 4, column=0, columnspan=1)
         lengenda_sobrecarga = Label(vizwindow, text="Sobrecarga: \u26DE")
         lengenda_sobrecarga.grid(row=len(dict) + 5, column=0, columnspan=1)
-        nada_executa = Label(vizwindow, text="Sem processos: \u25A1")
-        nada_executa.grid(row=len(dict) + 6, column= 0, columnspan=1)
+        #nada_executa = Label(vizwindow, text="Sem processos: \u25A1")
+        #nada_executa.grid(row=len(dict) + 6, column= 0, columnspan=1)
         legenda_deadline = Label(vizwindow, text="Ultrapassou Deadline(EDF): \u25A3")
         legenda_deadline.grid(row=len(dict) + 7, column=0, columnspan=1)
         return None

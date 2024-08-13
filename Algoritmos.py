@@ -78,8 +78,8 @@ def FIFO(App) -> None:
                 fila_processos.append(processo_atual)
         
         else:
-            label = Label(App.viz_window, text='\u25A1')  # Espaço Vazio
-            label.grid(row=1, column=1 + clock, columnspan=1)
+            #label = Label(App.viz_window, text='\u25A1')  # Espaço Vazio
+            #label.grid(row=1, column=1 + clock, columnspan=1)
             clock += 1
 
     # Calcula e mostra o tempo médio de espera
