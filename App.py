@@ -52,6 +52,12 @@ class App(Tk):
         itens = ['FIFO', 'SJF', 'ROUND ROBIN', 'EDF']
         self.algoritmo_input = ttk.Combobox (self,values=itens)
         self.algoritmo_input.grid(row=1, column=2)
+        
+        self.atraso_label = Label (self, text = 'Atraso na visualização', font=('Arial 15'))
+        self.atraso_label.grid(row=0, column=3, padx=5, pady=5)
+        itens2 = ['0.0', '0.5', '1.0', '1.5', '2.0']
+        self.atraso = ttk.Combobox (self,values=itens2)
+        self.atraso.grid(row=1, column=3)
 
     def legenda(self, vizwindow, dict):
         legenda_exec = Label(vizwindow, text="Executando: \u25A0")

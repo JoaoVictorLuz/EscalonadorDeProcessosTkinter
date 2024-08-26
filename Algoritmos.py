@@ -80,7 +80,9 @@ def FIFO(App) -> None:
                     tempo_espera[cur] += 1
                 
                 clock += 1
-                tksleep(App, 0.5)
+                if App.atraso is not None:
+                    atraso=float(App.atraso.get())
+                    tksleep(App, atraso)
             
             lista_exec[pid] = 0
             
@@ -88,10 +90,13 @@ def FIFO(App) -> None:
                 fila_processos.append(processo_atual)
         
         else:
-            #label = Label(App.viz_window, text='\u25A1')  # Espaço Vazio
-            #label.grid(row=1, column=1 + clock, columnspan=1)
+            label = Label(App.viz_window, text='\u25A1')  # Espaço Vazio
+            label.grid(row=1, column=1 + clock, columnspan=1)
             clock += 1
-
+            if App.atraso is not None:
+                atraso=float(App.atraso.get())
+                tksleep(App, atraso)
+                
     # Calcula e mostra o tempo médio de espera
      total_espera = sum(tempo_espera.values())
      total_execucao = sum(tempo_execucao.values())
@@ -155,7 +160,9 @@ def SJF(App) -> None:
                         tempo_espera += 1
 
                 clock += 1
-                tksleep(App, 0.5)
+                if App.atraso is not None:
+                    atraso=float(App.atraso.get())
+                    tksleep(App, atraso)
 
             lista_chegou.pop(0)  # Remove o processo atual da fila após a execução completa
         else:
@@ -165,6 +172,9 @@ def SJF(App) -> None:
             label = Label(App.viz_window, text='\u25A1')  # Espaço Vazio
             label.grid(row=1, column=1 + clock, columnspan=1)
             clock += 1
+            if App.atraso is not None:
+                atraso=float(App.atraso.get())
+                tksleep(App, atraso)
 
      total_sobrecarga = 0
      calcula_e_mostra_o_tempo_medio_de_espera(App, row_dict, tempo_espera, tempo_execucao, total_sobrecarga)
@@ -222,7 +232,9 @@ def roundRobin(App, quantum, sobrecarga) -> None:
                     total_espera += 1
 
                 clock += 1
-                tksleep(App, 0.5)
+                if App.atraso is not None:
+                    atraso=float(App.atraso.get())
+                    tksleep(App, atraso)
 
             lista_exec[pid] -= exec_time  # Subtrai o tempo executado
 
@@ -249,7 +261,9 @@ def roundRobin(App, quantum, sobrecarga) -> None:
                         
                         total_sobrecarga += 1
                     clock += 1
-                    tksleep(App, 0.5)
+                    if App.atraso is not None:
+                        atraso=float(App.atraso.get())
+                        tksleep(App, atraso)
             
             fila_processos.pop(0)
             
@@ -261,7 +275,10 @@ def roundRobin(App, quantum, sobrecarga) -> None:
             label = Label(App.viz_window, text='\u25A1')  # Espaço Vazio
             label.grid(row=1, column=1 + clock, columnspan=1)
             clock += 1
-
+            if App.atraso is not None:
+                atraso=float(App.atraso.get())
+                tksleep(App, atraso)
+    
     # Calcula o tempo médio de espera
      calcula_e_mostra_o_tempo_medio_de_espera(App, row_dict, total_espera, total_execucao, total_sobrecarga)
      
@@ -321,7 +338,9 @@ def EDF(App, quantum, sobrecarga) -> None:
                     label = Label(App.viz_window, text=symbol)
                     label.grid(row=1 + row_dict[cur], column=1 + clock, columnspan=1)
                     total_espera += 1
-                tksleep(App, 0.5)
+                if App.atraso is not None:
+                    atraso=float(App.atraso.get())
+                    tksleep(App, atraso)
                 clock += 1
 
             lista_exec[pid] -= exec_time  # Subtrai o tempo executado
@@ -350,7 +369,9 @@ def EDF(App, quantum, sobrecarga) -> None:
                             label.grid(row=1 + row_dict[cur], column=1 + clock, columnspan=1)
                             deadlines[cur]=deadlines[cur]-1 #Diminui a deadline
                         total_sobrecarga += 1
-                    tksleep(App, 0.5)
+                    if App.atraso is not None:
+                        atraso=float(App.atraso.get())
+                        tksleep(App, atraso)
                     clock += 1
             
             fila_processos.pop(0)
@@ -361,6 +382,9 @@ def EDF(App, quantum, sobrecarga) -> None:
             # Se nenhum processo está disponível, avança o tempo
             label = Label(App.viz_window, text='\u25A1')  # Espaço Vazio
             label.grid(row=1, column=1 + clock, columnspan=1)
+            if App.atraso is not None:
+                atraso=float(App.atraso.get())
+                tksleep(App, atraso)
             clock += 1
 
     # Calcula o tempo médio de espera
