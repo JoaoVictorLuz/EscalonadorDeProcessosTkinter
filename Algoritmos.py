@@ -342,10 +342,10 @@ def EDF(App, quantum, sobrecarga) -> None:
                     atraso=float(App.atraso.get())
                     tksleep(App, atraso)
                 clock += 1
-
+                for i in fila_processos:
+                        deadlines[i.pid]=deadlines[i.pid]-1  #subtrai tempo da deadline
             lista_exec[pid] -= exec_time  # Subtrai o tempo executado
-            for i in fila_processos:
-                deadlines[i.pid]=deadlines[i.pid]-exec_time   #subtrai tempo de execução da deadline
+              
 
             # Adiciona sobrecarga
             if lista_exec[pid] > 0 and len(fila_processos) > 0: 
@@ -373,6 +373,7 @@ def EDF(App, quantum, sobrecarga) -> None:
                         atraso=float(App.atraso.get())
                         tksleep(App, atraso)
                     clock += 1
+
             
             fila_processos.pop(0)
             if lista_exec[pid] > 0:                    #Reincere o processo caso não tenha acabado
